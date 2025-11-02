@@ -1,0 +1,139 @@
+{
+  "info": {
+    "_postman_id": "gym-management-feature1",
+    "name": "Gym Management - Feature 1",
+    "description": "Collection de testes para a Feature 1 - Gerenciamento de Academias",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Academias",
+      "item": [
+        {
+          "name": "Listar Todas as Academias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/academias",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "academias"
+              ]
+            },
+            "description": "Retorna a lista de todas as academias cadastradas no sistema."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Academia por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/academias/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "academias",
+                "1"
+              ]
+            },
+            "description": "Busca uma academia específica pelo seu ID. Substitua '1' pelo ID desejado."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Nova Academia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Academia Flex Fitness\",\n  \"cnpj\": \"44.555.666/0001-77\",\n  \"endereco\": \"Rua D, 999 - Zona Sul\",\n  \"telefone\": \"(11) 3333-4444\",\n  \"statusAtivo\": true\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/academias",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "academias"
+              ]
+            },
+            "description": "Cria uma nova academia no sistema. O ID é gerado automaticamente."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Academia",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Academia Força Total - Atualizada\",\n  \"cnpj\": \"12.345.678/0001-00\",\n  \"endereco\": \"Rua A, 123 - Centro Expandido\",\n  \"telefone\": \"(11) 9876-5433\",\n  \"statusAtivo\": true\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/academias/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "academias",
+                "1"
+              ]
+            },
+            "description": "Atualiza os dados de uma academia existente. Substitua '1' pelo ID desejado."
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Academia",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/academias/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "academias",
+                "5"
+              ]
+            },
+            "description": "Remove uma academia do sistema. Substitua '5' pelo ID desejado. Retorna 204 No Content se bem-sucedido."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
