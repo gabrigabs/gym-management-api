@@ -1,0 +1,7 @@
+Pedro Gomes;pedro@gmail.com;111.222.333-44;11955555555;MAT001;Gold;2024-01-15;true
+Juliana Ferreira;juliana@gmail.com;222.333.444-55;11944444444;MAT002;Silver;2024-02-20;true
+Rafael Santos;rafael@gmail.com;333.444.555-66;11933333333;MAT003;Bronze;2024-03-10;true
+Beatriz Almeida;beatriz@gmail.com;444.555.666-77;11922222222;MAT004;Gold;2024-04-05;false
+Gabriel Lima;gabriel@gmail.com;555.666.777-88;11911111111;MAT005;Silver;2024-05-12;true
+Camila Rosa;camila@gmail.com;666.777.888-99;11900000000;MAT006;Bronze;2024-06-01;true
+
