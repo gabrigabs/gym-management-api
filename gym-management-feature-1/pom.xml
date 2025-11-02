@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.edu.infnet.gabriel</groupId>
-	<artifactId>gym-management</artifactId>
+	<artifactId>gym-management-feature-1</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>gym-management</name>
 	<description>Demo project for Spring Boot</description>
