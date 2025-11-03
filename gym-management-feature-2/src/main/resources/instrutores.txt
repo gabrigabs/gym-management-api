@@ -1,0 +1,5 @@
+João Silva;joao@gmail.com;123.456.789-10;11999999999;REG001;Musculação;5000.00;true;01310-100;Avenida Paulista;Apto 100;100;Bela Vista;São Paulo;SP;São Paulo
+Maria Santos;maria@gmail.com;987.654.321-11;11988888888;REG002;Pilates;4500.00;true;05426-100;Rua Bandeira;Apto 200;200;Vila Mariana;São Paulo;SP;São Paulo
+Carlos Oliveira;carlos@gmail.com;456.789.123-22;11977777777;REG003;Funcional;5500.00;true;04543-130;Avenida Imigrantes;Apto 300;300;Vila Gomes;São Paulo;SP;São Paulo
+Ana Costa;ana@gmail.com;789.123.456-33;11966666666;REG004;Yoga;4000.00;false;13560-310;Avenida Getúlio Vargas;Apto 400;400;Centro;São Carlos;SP;São Paulo
+
