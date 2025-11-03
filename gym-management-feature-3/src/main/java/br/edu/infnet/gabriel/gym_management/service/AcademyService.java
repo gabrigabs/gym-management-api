@@ -1,37 +1,34 @@
 package br.edu.infnet.gabriel.gym_management.service;
 
 import br.edu.infnet.gabriel.gym_management.model.Academia;
+import br.edu.infnet.gabriel.gym_management.repository.AcademiaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Serviço responsável pela gestão de Academias.
- * Utiliza ConcurrentHashMap para armazenamento em memória com thread-safety.
- * IDs são gerados automaticamente via AtomicInteger.
+ * Utiliza JPA Repository para persistência de dados.
+ * IDs são gerados automaticamente via JPA (IDENTITY strategy).
  */
 @Service
-public class AcademyService implements CrudService<Academia, Integer> {
+public class AcademyService implements CrudService<Academia, Long> {
 
-    private final ConcurrentHashMap<Integer, Academia> repositorio = new ConcurrentHashMap<>();
-    private final AtomicInteger idGenerator = new AtomicInteger(1);
+    private final AcademiaRepository academiaRepository;
+
+    public AcademyService(AcademiaRepository academiaRepository) {
+        this.academiaRepository = academiaRepository;
+    }
 
     /**
      * Salva uma nova academia ou atualiza uma existente.
-     * Se o ID é nulo, um novo ID é gerado.
      *
      * @param academia A academia a ser salva
      * @return A academia salva com ID atribuído
      */
     @Override
     public Academia salvar(Academia academia) {
-        if (academia.getId() == null) {
-            academia.setId(idGenerator.getAndIncrement());
-        }
-        repositorio.put(academia.getId(), academia);
-        return academia;
+        return academiaRepository.save(academia);
     }
 
     /**
@@ -41,8 +38,8 @@ public class AcademyService implements CrudService<Academia, Integer> {
      * @return A academia encontrada, ou null se não existir
      */
     @Override
-    public Academia buscarPorId(Integer id) {
-        return repositorio.get(id);
+    public Academia buscarPorId(Long id) {
+        return academiaRepository.findById(id).orElse(null);
     }
 
     /**
@@ -52,8 +49,12 @@ public class AcademyService implements CrudService<Academia, Integer> {
      * @return true se a academia foi removida, false se não existia
      */
     @Override
-    public Boolean excluir(Integer id) {
-        return repositorio.remove(id) != null;
+    public Boolean excluir(Long id) {
+        if (academiaRepository.existsById(id)) {
+            academiaRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -63,7 +64,7 @@ public class AcademyService implements CrudService<Academia, Integer> {
      */
     @Override
     public List<Academia> listarTodos() {
-        return List.copyOf(repositorio.values());
+        return academiaRepository.findAll();
     }
 }
 

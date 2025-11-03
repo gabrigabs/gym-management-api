@@ -39,12 +39,13 @@ public class AlunoController {
      * Busca um aluno por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         try {
             Aluno aluno = alunoService.buscarPorId(id);
             return ResponseEntity.ok(aluno);
         } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -58,7 +59,8 @@ public class AlunoController {
             Aluno aluno = alunoService.buscarPorCpf(cpf);
             return ResponseEntity.ok(aluno);
         } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -72,7 +74,8 @@ public class AlunoController {
             Aluno aluno = alunoService.buscarPorMatricula(matricula);
             return ResponseEntity.ok(aluno);
         } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -96,7 +99,8 @@ public class AlunoController {
             Aluno salvo = alunoService.salvar(aluno);
             return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
         } catch (AlunoInvalidoException e) {
-            return ResponseEntity.badRequest().body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -105,16 +109,18 @@ public class AlunoController {
      * Atualiza um aluno existente
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Integer id, @RequestBody Aluno alunoAtualizado) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Aluno alunoAtualizado) {
         try {
             Aluno aluno = alunoService.buscarPorId(id);
             alunoAtualizado.setId(id);
             Aluno salvo = alunoService.salvar(alunoAtualizado);
             return ResponseEntity.ok(salvo);
         } catch (AlunoInvalidoException e) {
-            return ResponseEntity.badRequest().body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -123,12 +129,13 @@ public class AlunoController {
      * Inativa um aluno (altera status para false)
      */
     @PatchMapping("/{id}/inativar")
-    public ResponseEntity<?> inativar(@PathVariable Integer id) {
+    public ResponseEntity<?> inativar(@PathVariable Long id) {
         try {
             Aluno aluno = alunoService.inativar(id);
             return ResponseEntity.ok(aluno);
         } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -137,12 +144,13 @@ public class AlunoController {
      * Ativa um aluno (altera status para true)
      */
     @PatchMapping("/{id}/ativar")
-    public ResponseEntity<?> ativar(@PathVariable Integer id) {
+    public ResponseEntity<?> ativar(@PathVariable Long id) {
         try {
             Aluno aluno = alunoService.ativar(id);
             return ResponseEntity.ok(aluno);
         } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -151,16 +159,12 @@ public class AlunoController {
      * Deleta um aluno
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Integer id) {
-        try {
-            Boolean deletado = alunoService.excluir(id);
-            if (!deletado) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        Boolean deletado = alunoService.excluir(id);
+        if (!deletado) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
 

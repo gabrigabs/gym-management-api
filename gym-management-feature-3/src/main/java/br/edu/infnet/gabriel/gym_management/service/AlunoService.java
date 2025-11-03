@@ -1,52 +1,50 @@
 package br.edu.infnet.gabriel.gym_management.service;
 
 import br.edu.infnet.gabriel.gym_management.model.Aluno;
+import br.edu.infnet.gabriel.gym_management.repository.AlunoRepository;
 import br.edu.infnet.gabriel.gym_management.exception.AlunoInvalidoException;
 import br.edu.infnet.gabriel.gym_management.exception.AlunoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Serviço responsável pela gestão de Alunos.
- * Utiliza ConcurrentHashMap para armazenamento em memória com thread-safety.
+ * Utiliza JPA Repository para persistência de dados.
  */
 @Service
-public class AlunoService implements CrudService<Aluno, Integer> {
+public class AlunoService implements CrudService<Aluno, Long> {
 
-    private final ConcurrentHashMap<Integer, Aluno> repositorio = new ConcurrentHashMap<>();
-    private final AtomicInteger idGenerator = new AtomicInteger(1);
+    private final AlunoRepository alunoRepository;
+
+    public AlunoService(AlunoRepository alunoRepository) {
+        this.alunoRepository = alunoRepository;
+    }
 
     @Override
     public Aluno salvar(Aluno aluno) {
         validarAluno(aluno);
-        if (aluno.getId() == null) {
-            aluno.setId(idGenerator.getAndIncrement());
-        }
-        repositorio.put(aluno.getId(), aluno);
-        return aluno;
+        return alunoRepository.save(aluno);
     }
 
     @Override
-    public Aluno buscarPorId(Integer id) {
-        Aluno aluno = repositorio.get(id);
-        if (aluno == null) {
-            throw new AlunoNaoEncontradoException("Aluno com ID " + id + " não encontrado");
-        }
-        return aluno;
+    public Aluno buscarPorId(Long id) {
+        return alunoRepository.findById(id)
+                .orElseThrow(() -> new AlunoNaoEncontradoException("Aluno com ID " + id + " não encontrado"));
     }
 
     @Override
-    public Boolean excluir(Integer id) {
-        Aluno removido = repositorio.remove(id);
-        return removido != null;
+    public Boolean excluir(Long id) {
+        if (alunoRepository.existsById(id)) {
+            alunoRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public List<Aluno> listarTodos() {
-        return List.copyOf(repositorio.values());
+        return alunoRepository.findAll();
     }
 
     /**
@@ -57,9 +55,7 @@ public class AlunoService implements CrudService<Aluno, Integer> {
      * @throws AlunoNaoEncontradoException Se não encontrar
      */
     public Aluno buscarPorCpf(String cpf) {
-        return repositorio.values().stream()
-                .filter(a -> a.getCpf() != null && a.getCpf().equals(cpf))
-                .findFirst()
+        return alunoRepository.findByCpf(cpf)
                 .orElseThrow(() -> new AlunoNaoEncontradoException("Aluno com CPF " + cpf + " não encontrado"));
     }
 
@@ -71,9 +67,7 @@ public class AlunoService implements CrudService<Aluno, Integer> {
      * @throws AlunoNaoEncontradoException Se não encontrar
      */
     public Aluno buscarPorMatricula(String matricula) {
-        return repositorio.values().stream()
-                .filter(a -> a.getMatricula() != null && a.getMatricula().equals(matricula))
-                .findFirst()
+        return alunoRepository.findByMatricula(matricula)
                 .orElseThrow(() -> new AlunoNaoEncontradoException("Aluno com matrícula " + matricula + " não encontrado"));
     }
 
@@ -84,9 +78,7 @@ public class AlunoService implements CrudService<Aluno, Integer> {
      * @return Lista de alunos com o plano
      */
     public List<Aluno> buscarPorPlano(String plano) {
-        return repositorio.values().stream()
-                .filter(a -> a.getPlano() != null && a.getPlano().equalsIgnoreCase(plano))
-                .toList();
+        return alunoRepository.findByPlanoIgnoreCase(plano);
     }
 
     /**
@@ -95,11 +87,10 @@ public class AlunoService implements CrudService<Aluno, Integer> {
      * @param id O ID do aluno
      * @throws AlunoNaoEncontradoException Se não encontrar
      */
-    public Aluno inativar(Integer id) {
+    public Aluno inativar(Long id) {
         Aluno aluno = buscarPorId(id);
         aluno.setStatus(false);
-        repositorio.put(id, aluno);
-        return aluno;
+        return alunoRepository.save(aluno);
     }
 
     /**
@@ -108,11 +99,10 @@ public class AlunoService implements CrudService<Aluno, Integer> {
      * @param id O ID do aluno
      * @throws AlunoNaoEncontradoException Se não encontrar
      */
-    public Aluno ativar(Integer id) {
+    public Aluno ativar(Long id) {
         Aluno aluno = buscarPorId(id);
         aluno.setStatus(true);
-        repositorio.put(id, aluno);
-        return aluno;
+        return alunoRepository.save(aluno);
     }
 
     /**

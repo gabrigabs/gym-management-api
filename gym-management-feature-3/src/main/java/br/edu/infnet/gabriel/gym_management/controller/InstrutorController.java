@@ -39,12 +39,13 @@ public class InstrutorController {
      * Busca um instrutor por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         try {
             Instrutor instrutor = instrutorService.buscarPorId(id);
             return ResponseEntity.ok(instrutor);
         } catch (InstrutorNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -58,7 +59,8 @@ public class InstrutorController {
             Instrutor instrutor = instrutorService.buscarPorCpf(cpf);
             return ResponseEntity.ok(instrutor);
         } catch (InstrutorNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -82,7 +84,8 @@ public class InstrutorController {
             Instrutor salvo = instrutorService.salvar(instrutor);
             return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
         } catch (InstrutorInvalidoException e) {
-            return ResponseEntity.badRequest().body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -91,16 +94,18 @@ public class InstrutorController {
      * Atualiza um instrutor existente
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Integer id, @RequestBody Instrutor instrutorAtualizado) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Instrutor instrutorAtualizado) {
         try {
             Instrutor instrutor = instrutorService.buscarPorId(id);
             instrutorAtualizado.setId(id);
             Instrutor salvo = instrutorService.salvar(instrutorAtualizado);
             return ResponseEntity.ok(salvo);
         } catch (InstrutorInvalidoException e) {
-            return ResponseEntity.badRequest().body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         } catch (InstrutorNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -109,12 +114,13 @@ public class InstrutorController {
      * Inativa um instrutor (altera status para false)
      */
     @PatchMapping("/{id}/inativar")
-    public ResponseEntity<?> inativar(@PathVariable Integer id) {
+    public ResponseEntity<?> inativar(@PathVariable Long id) {
         try {
             Instrutor instrutor = instrutorService.inativar(id);
             return ResponseEntity.ok(instrutor);
         } catch (InstrutorNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -123,12 +129,13 @@ public class InstrutorController {
      * Ativa um instrutor (altera status para true)
      */
     @PatchMapping("/{id}/ativar")
-    public ResponseEntity<?> ativar(@PathVariable Integer id) {
+    public ResponseEntity<?> ativar(@PathVariable Long id) {
         try {
             Instrutor instrutor = instrutorService.ativar(id);
             return ResponseEntity.ok(instrutor);
         } catch (InstrutorNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -137,16 +144,12 @@ public class InstrutorController {
      * Deleta um instrutor
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Integer id) {
-        try {
-            Boolean deletado = instrutorService.excluir(id);
-            if (!deletado) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        Boolean deletado = instrutorService.excluir(id);
+        if (!deletado) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
 

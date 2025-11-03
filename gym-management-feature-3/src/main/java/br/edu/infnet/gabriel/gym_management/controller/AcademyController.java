@@ -18,21 +18,13 @@ public class AcademyController {
 
     private final AcademyService academyService;
 
-    /**
-     * Construtor com injeção de dependência via construtor.
-     *
-     * @param academyService O serviço de Academias
-     */
     public AcademyController(AcademyService academyService) {
         this.academyService = academyService;
     }
 
     /**
-     * Endpoint para listar todas as academias.
-     *
      * GET /academias
-     *
-     * @return ResponseEntity contendo a lista de todas as academias
+     * Lista todas as academias
      */
     @GetMapping
     public ResponseEntity<List<Academia>> listarTodas() {
@@ -41,40 +33,21 @@ public class AcademyController {
     }
 
     /**
-     * Endpoint para buscar uma academia por ID.
-     *
      * GET /academias/{id}
-     *
-     * @param id O ID da academia a ser buscada
-     * @return ResponseEntity contendo a academia encontrada ou 404 se não existir
+     * Busca uma academia por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Academia> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<Academia> buscarPorId(@PathVariable Long id) {
         Academia academia = academyService.buscarPorId(id);
-
         if (academia == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
         return ResponseEntity.ok(academia);
     }
 
     /**
-     * Endpoint para criar uma nova academia.
-     *
      * POST /academias
-     *
-     * Request Body:
-     * {
-     *   "nome": "Academia Força Total",
-     *   "cnpj": "12.345.678/0001-00",
-     *   "endereco": "Rua A, 123",
-     *   "telefone": "11987654321",
-     *   "statusAtivo": true
-     * }
-     *
-     * @param academia A academia a ser criada
-     * @return ResponseEntity com status 201 (Created) e a academia salva
+     * Cria uma nova academia
      */
     @PostMapping
     public ResponseEntity<Academia> criar(@RequestBody Academia academia) {
@@ -83,53 +56,31 @@ public class AcademyController {
     }
 
     /**
-     * Endpoint para atualizar uma academia existente.
-     *
      * PUT /academias/{id}
-     *
-     * Request Body:
-     * {
-     *   "nome": "Academia Força Total Atualizada",
-     *   "cnpj": "12.345.678/0001-00",
-     *   "endereco": "Rua B, 456",
-     *   "telefone": "11987654322",
-     *   "statusAtivo": true
-     * }
-     *
-     * @param id O ID da academia a ser atualizada
-     * @param acadamiaAtualizada Os dados atualizados da academia
-     * @return ResponseEntity com a academia atualizada ou 404 se não existir
+     * Atualiza uma academia existente
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Academia> atualizar(@PathVariable Integer id, @RequestBody Academia acadamiaAtualizada) {
+    public ResponseEntity<Academia> atualizar(@PathVariable Long id, @RequestBody Academia academiaAtualizada) {
         Academia academia = academyService.buscarPorId(id);
-
         if (academia == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        acadamiaAtualizada.setId(id);
-        Academia salva = academyService.salvar(acadamiaAtualizada);
+        academiaAtualizada.setId(id);
+        Academia salva = academyService.salvar(academiaAtualizada);
         return ResponseEntity.ok(salva);
     }
 
     /**
-     * Endpoint para deletar uma academia.
-     *
      * DELETE /academias/{id}
-     *
-     * @param id O ID da academia a ser deletada
-     * @return ResponseEntity com status 204 (No Content) ou 404 se não existir
+     * Deleta uma academia
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Integer id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         Boolean deletado = academyService.excluir(id);
-
         if (!deletado) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
 

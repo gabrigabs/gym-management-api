@@ -1,52 +1,50 @@
 package br.edu.infnet.gabriel.gym_management.service;
 
 import br.edu.infnet.gabriel.gym_management.model.Instrutor;
+import br.edu.infnet.gabriel.gym_management.repository.InstrutorRepository;
 import br.edu.infnet.gabriel.gym_management.exception.InstrutorInvalidoException;
 import br.edu.infnet.gabriel.gym_management.exception.InstrutorNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Serviço responsável pela gestão de Instrutores.
- * Utiliza ConcurrentHashMap para armazenamento em memória com thread-safety.
+ * Utiliza JPA Repository para persistência de dados.
  */
 @Service
-public class InstrutorService implements CrudService<Instrutor, Integer> {
+public class InstrutorService implements CrudService<Instrutor, Long> {
 
-    private final ConcurrentHashMap<Integer, Instrutor> repositorio = new ConcurrentHashMap<>();
-    private final AtomicInteger idGenerator = new AtomicInteger(1);
+    private final InstrutorRepository instrutorRepository;
+
+    public InstrutorService(InstrutorRepository instrutorRepository) {
+        this.instrutorRepository = instrutorRepository;
+    }
 
     @Override
     public Instrutor salvar(Instrutor instrutor) {
         validarInstrutor(instrutor);
-        if (instrutor.getId() == null) {
-            instrutor.setId(idGenerator.getAndIncrement());
-        }
-        repositorio.put(instrutor.getId(), instrutor);
-        return instrutor;
+        return instrutorRepository.save(instrutor);
     }
 
     @Override
-    public Instrutor buscarPorId(Integer id) {
-        Instrutor instrutor = repositorio.get(id);
-        if (instrutor == null) {
-            throw new InstrutorNaoEncontradoException("Instrutor com ID " + id + " não encontrado");
-        }
-        return instrutor;
+    public Instrutor buscarPorId(Long id) {
+        return instrutorRepository.findById(id)
+                .orElseThrow(() -> new InstrutorNaoEncontradoException("Instrutor com ID " + id + " não encontrado"));
     }
 
     @Override
-    public Boolean excluir(Integer id) {
-        Instrutor removido = repositorio.remove(id);
-        return removido != null;
+    public Boolean excluir(Long id) {
+        if (instrutorRepository.existsById(id)) {
+            instrutorRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public List<Instrutor> listarTodos() {
-        return List.copyOf(repositorio.values());
+        return instrutorRepository.findAll();
     }
 
     /**
@@ -57,9 +55,7 @@ public class InstrutorService implements CrudService<Instrutor, Integer> {
      * @throws InstrutorNaoEncontradoException Se não encontrar
      */
     public Instrutor buscarPorCpf(String cpf) {
-        return repositorio.values().stream()
-                .filter(i -> i.getCpf() != null && i.getCpf().equals(cpf))
-                .findFirst()
+        return instrutorRepository.findByCpf(cpf)
                 .orElseThrow(() -> new InstrutorNaoEncontradoException("Instrutor com CPF " + cpf + " não encontrado"));
     }
 
@@ -70,9 +66,7 @@ public class InstrutorService implements CrudService<Instrutor, Integer> {
      * @return Lista de instrutores com a especialidade
      */
     public List<Instrutor> buscarPorEspecialidade(String especialidade) {
-        return repositorio.values().stream()
-                .filter(i -> i.getEspecialidade() != null && i.getEspecialidade().equalsIgnoreCase(especialidade))
-                .toList();
+        return instrutorRepository.findByEspecialidadeIgnoreCase(especialidade);
     }
 
     /**
@@ -81,11 +75,10 @@ public class InstrutorService implements CrudService<Instrutor, Integer> {
      * @param id O ID do instrutor
      * @throws InstrutorNaoEncontradoException Se não encontrar
      */
-    public Instrutor inativar(Integer id) {
+    public Instrutor inativar(Long id) {
         Instrutor instrutor = buscarPorId(id);
         instrutor.setStatus(false);
-        repositorio.put(id, instrutor);
-        return instrutor;
+        return instrutorRepository.save(instrutor);
     }
 
     /**
@@ -94,11 +87,10 @@ public class InstrutorService implements CrudService<Instrutor, Integer> {
      * @param id O ID do instrutor
      * @throws InstrutorNaoEncontradoException Se não encontrar
      */
-    public Instrutor ativar(Integer id) {
+    public Instrutor ativar(Long id) {
         Instrutor instrutor = buscarPorId(id);
         instrutor.setStatus(true);
-        repositorio.put(id, instrutor);
-        return instrutor;
+        return instrutorRepository.save(instrutor);
     }
 
     /**

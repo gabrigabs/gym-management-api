@@ -38,13 +38,12 @@ public class EnderecoController {
      * Busca um endereço por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Endereco> buscarPorId(@PathVariable Integer id) {
-        try {
-            Endereco endereco = enderecoService.buscarPorId(id);
-            return ResponseEntity.ok(endereco);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Endereco> buscarPorId(@PathVariable Long id) {
+        Endereco endereco = enderecoService.buscarPorId(id);
+        if (endereco == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        return ResponseEntity.ok(endereco);
     }
 
     /**
@@ -57,7 +56,8 @@ public class EnderecoController {
             Endereco salvo = enderecoService.salvar(endereco);
             return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
         } catch (EnderecoInvalidoException e) {
-            return ResponseEntity.badRequest().body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -66,17 +66,18 @@ public class EnderecoController {
      * Atualiza um endereço existente
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Integer id, @RequestBody Endereco enderecoAtualizado) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Endereco enderecoAtualizado) {
         try {
             Endereco endereco = enderecoService.buscarPorId(id);
             if (endereco == null) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             enderecoAtualizado.setId(id);
             Endereco salvo = enderecoService.salvar(enderecoAtualizado);
             return ResponseEntity.ok(salvo);
         } catch (EnderecoInvalidoException e) {
-            return ResponseEntity.badRequest().body("{\"erro\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -85,12 +86,12 @@ public class EnderecoController {
      * Deleta um endereço
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Integer id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         Boolean deletado = enderecoService.excluir(id);
         if (!deletado) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
 

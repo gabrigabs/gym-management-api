@@ -1,0 +1,620 @@
+{
+	"info": {
+		"_postman_id": "gym-mgmt-feature3-001",
+		"name": "Gym Management API - Feature 3 (JPA + H2)",
+		"description": "Collection completa para testar a API de Gerenciamento de Academias com persistência JPA e banco H2.\n\n**Feature 3 Highlights:**\n- Persistência com Spring Data JPA\n- Banco H2 em memória\n- IDs auto-incrementais\n- Relacionamento OneToOne (Instrutor-Endereco)\n- Status HTTP adequados (200, 201, 204, 400, 404)\n- H2 Console disponível em http://localhost:8080/h2-console",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Academias",
+			"item": [
+				{
+					"name": "Listar Todas Academias",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/academias",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["academias"]
+						},
+						"description": "Lista todas as academias cadastradas no banco H2. Dados são pré-carregados via AcademyLoader."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Academia por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/academias/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["academias", "1"]
+						},
+						"description": "Busca uma academia específica por ID (auto-incremental do banco)."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Nova Academia",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Academia PowerGym\",\n  \"cnpj\": \"33.444.555/0001-22\",\n  \"endereco\": \"Av. Brasil, 5000 - Centro\",\n  \"telefone\": \"(11) 98765-4321\",\n  \"statusAtivo\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/academias",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["academias"]
+						},
+						"description": "Cria uma nova academia no banco. O ID será gerado automaticamente. Retorna **201 CREATED**."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Academia",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Academia Força Total - Unidade Nova\",\n  \"cnpj\": \"12.345.678/0001-00\",\n  \"endereco\": \"Rua A, 123 - Centro - Atualizado\",\n  \"telefone\": \"(11) 9876-5432\",\n  \"statusAtivo\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/academias/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["academias", "1"]
+						},
+						"description": "Atualiza uma academia existente. Retorna **200 OK** ou **404 NOT FOUND**."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Academia",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/academias/4",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["academias", "4"]
+						},
+						"description": "Remove uma academia do banco. Retorna **204 NO CONTENT** ou **404 NOT FOUND**."
+					},
+					"response": []
+				}
+			],
+			"description": "Operações CRUD para Academias com persistência JPA."
+		},
+		{
+			"name": "Alunos",
+			"item": [
+				{
+					"name": "Listar Todos Alunos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos"]
+						},
+						"description": "Lista todos os alunos persistidos no banco H2. Dados pré-carregados de alunos.txt."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Aluno por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "1"]
+						},
+						"description": "Busca um aluno por ID (Long auto-incremental)."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Aluno por CPF",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/cpf/111.222.333-44",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "cpf", "111.222.333-44"]
+						},
+						"description": "Busca aluno por CPF único (constraint UNIQUE no banco)."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Aluno por Matrícula",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/matricula/MAT001",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "matricula", "MAT001"]
+						},
+						"description": "Busca aluno por matrícula única (constraint UNIQUE)."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Alunos por Plano",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/plano/gold",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "plano", "gold"]
+						},
+						"description": "Busca alunos por plano (case insensitive). Usa JPA query method."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Novo Aluno",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Lucas Martins\",\n  \"email\": \"lucas.martins@email.com\",\n  \"cpf\": \"777.888.999-00\",\n  \"telefone\": \"11977778888\",\n  \"matricula\": \"MAT777\",\n  \"plano\": \"Platinum\",\n  \"dataInicio\": \"2024-11-03\",\n  \"status\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/alunos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos"]
+						},
+						"description": "Cria um novo aluno no banco. ID é auto-gerado. Retorna **201 CREATED**."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Aluno",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pedro Gomes - Atualizado\",\n  \"email\": \"pedro@gmail.com\",\n  \"cpf\": \"111.222.333-44\",\n  \"telefone\": \"11955555555\",\n  \"matricula\": \"MAT001\",\n  \"plano\": \"Platinum\",\n  \"dataInicio\": \"2024-01-15\",\n  \"status\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/alunos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "1"]
+						},
+						"description": "Atualiza um aluno existente. Validações aplicadas. Retorna **200 OK**, **400 BAD REQUEST** ou **404 NOT FOUND**."
+					},
+					"response": []
+				},
+				{
+					"name": "Ativar Aluno",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/4/ativar",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "4", "ativar"]
+						},
+						"description": "Ativa um aluno (status = true). Operação PATCH parcial."
+					},
+					"response": []
+				},
+				{
+					"name": "Inativar Aluno",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/4/inativar",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "4", "inativar"]
+						},
+						"description": "Inativa um aluno (status = false). PATCH parcial."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Aluno",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/alunos/6",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["alunos", "6"]
+						},
+						"description": "Remove um aluno do banco. Retorna **204 NO CONTENT** ou **404 NOT FOUND**."
+					},
+					"response": []
+				}
+			],
+			"description": "CRUD completo de Alunos com persistência JPA e constraints de banco."
+		},
+		{
+			"name": "Instrutores",
+			"item": [
+				{
+					"name": "Listar Todos Instrutores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores"]
+						},
+						"description": "Lista todos os instrutores com seus endereços (relacionamento @OneToOne)."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Instrutor por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "1"]
+						},
+						"description": "Busca instrutor por ID com endereco carregado via JOIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Instrutor por CPF",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores/cpf/123.456.789-10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "cpf", "123.456.789-10"]
+						},
+						"description": "Busca instrutor por CPF único."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Instrutores por Especialidade",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores/especialidade/pilates",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "especialidade", "pilates"]
+						},
+						"description": "Busca instrutores por especialidade (case insensitive)."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Novo Instrutor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Fernanda Costa\",\n  \"email\": \"fernanda.costa@gym.com\",\n  \"cpf\": \"555.444.333-22\",\n  \"telefone\": \"11955443322\",\n  \"registro\": \"REG555\",\n  \"especialidade\": \"Spinning\",\n  \"salario\": 4500.0,\n  \"status\": true,\n  \"endereco\": {\n    \"cep\": \"05678-910\",\n    \"logradouro\": \"Rua dos Instrutores\",\n    \"complemento\": \"Apto 505\",\n    \"unidade\": \"505\",\n    \"bairro\": \"Vila Olimpia\",\n    \"localidade\": \"São Paulo\",\n    \"uf\": \"SP\",\n    \"estado\": \"São Paulo\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/instrutores",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores"]
+						},
+						"description": "Cria instrutor com endereco. O endereco é salvo automaticamente via **CascadeType.ALL**. Retorna **201 CREATED**."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Instrutor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva - Atualizado\",\n  \"email\": \"joao@gmail.com\",\n  \"cpf\": \"123.456.789-10\",\n  \"telefone\": \"11999999999\",\n  \"registro\": \"REG001\",\n  \"especialidade\": \"Musculação Avançada\",\n  \"salario\": 5500.0,\n  \"status\": true,\n  \"endereco\": {\n    \"cep\": \"01310-100\",\n    \"logradouro\": \"Avenida Paulista\",\n    \"complemento\": \"Apto 100\",\n    \"unidade\": \"100\",\n    \"bairro\": \"Bela Vista\",\n    \"localidade\": \"São Paulo\",\n    \"uf\": \"SP\",\n    \"estado\": \"São Paulo\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/instrutores/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "1"]
+						},
+						"description": "Atualiza instrutor e seu endereco. Cascade atualiza o endereco também."
+					},
+					"response": []
+				},
+				{
+					"name": "Ativar Instrutor",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores/4/ativar",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "4", "ativar"]
+						},
+						"description": "Ativa instrutor (status = true)."
+					},
+					"response": []
+				},
+				{
+					"name": "Inativar Instrutor",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores/4/inativar",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "4", "inativar"]
+						},
+						"description": "Inativa instrutor (status = false)."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Instrutor",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/instrutores/4",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["instrutores", "4"]
+						},
+						"description": "Remove instrutor. O endereco é deletado automaticamente via **orphanRemoval=true**. Retorna **204 NO CONTENT**."
+					},
+					"response": []
+				}
+			],
+			"description": "CRUD de Instrutores com relacionamento @OneToOne com Endereco."
+		},
+		{
+			"name": "Endereços",
+			"item": [
+				{
+					"name": "Listar Todos Endereços",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/enderecos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["enderecos"]
+						},
+						"description": "Lista todos os endereços persistidos (incluindo os de instrutores)."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Endereço por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/enderecos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["enderecos", "1"]
+						},
+						"description": "Busca um endereço específico por ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Novo Endereço",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cep\": \"12345-678\",\n  \"logradouro\": \"Rua Teste\",\n  \"complemento\": \"Casa\",\n  \"unidade\": \"1\",\n  \"bairro\": \"Centro\",\n  \"localidade\": \"São Paulo\",\n  \"uf\": \"SP\",\n  \"estado\": \"São Paulo\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/enderecos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["enderecos"]
+						},
+						"description": "Cria um endereço independente. Retorna **201 CREATED**."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Endereço",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cep\": \"01310-100\",\n  \"logradouro\": \"Avenida Paulista - Atualizado\",\n  \"complemento\": \"Apto 101\",\n  \"unidade\": \"101\",\n  \"bairro\": \"Bela Vista\",\n  \"localidade\": \"São Paulo\",\n  \"uf\": \"SP\",\n  \"estado\": \"São Paulo\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/enderecos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["enderecos", "1"]
+						},
+						"description": "Atualiza um endereço. **Cuidado**: Pode afetar instrutores relacionados."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Endereço",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/enderecos/5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["enderecos", "5"]
+						},
+						"description": "Remove um endereço. **Atenção**: Se vinculado a instrutor, pode causar erro (FK constraint)."
+					},
+					"response": []
+				}
+			],
+			"description": "Operações com Endereços. Normalmente gerenciados via Instrutor, mas podem ser independentes."
+		},
+		{
+			"name": "H2 Console & Database",
+			"item": [
+				{
+					"name": "Acessar H2 Console (Browser)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/h2-console",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["h2-console"]
+						},
+						"description": "Acessa a interface web do H2 Console.\n\n**Credenciais:**\n- JDBC URL: `jdbc:h2:mem:gymdb`\n- User: `sa`\n- Password: (vazio)\n\n**Queries úteis:**\n```sql\nSELECT * FROM ACADEMIAS;\nSELECT * FROM ALUNOS WHERE STATUS = TRUE;\nSELECT i.NOME, i.ESPECIALIDADE, e.LOGRADOURO \nFROM INSTRUTORES i \nLEFT JOIN ENDERECOS e ON i.ENDERECO_ID = e.ID;\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "Links para acessar o H2 Console e testar queries SQL diretamente no banco."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
+
