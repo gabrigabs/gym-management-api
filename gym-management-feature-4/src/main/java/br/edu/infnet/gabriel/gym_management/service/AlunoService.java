@@ -1,12 +1,16 @@
 package br.edu.infnet.gabriel.gym_management.service;
 
 import br.edu.infnet.gabriel.gym_management.model.Aluno;
+import br.edu.infnet.gabriel.gym_management.model.Academia;
 import br.edu.infnet.gabriel.gym_management.repository.AlunoRepository;
+import br.edu.infnet.gabriel.gym_management.repository.AcademiaRepository;
 import br.edu.infnet.gabriel.gym_management.exception.AlunoInvalidoException;
 import br.edu.infnet.gabriel.gym_management.exception.AlunoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Serviço responsável pela gestão de Alunos.
@@ -16,9 +20,11 @@ import java.util.List;
 public class AlunoService implements CrudService<Aluno, Long> {
 
     private final AlunoRepository alunoRepository;
+    private final AcademiaRepository academiaRepository;
 
-    public AlunoService(AlunoRepository alunoRepository) {
+    public AlunoService(AlunoRepository alunoRepository, AcademiaRepository academiaRepository) {
         this.alunoRepository = alunoRepository;
+        this.academiaRepository = academiaRepository;
     }
 
     @Override
@@ -49,10 +55,6 @@ public class AlunoService implements CrudService<Aluno, Long> {
 
     /**
      * Busca um aluno pelo CPF.
-     *
-     * @param cpf O CPF do aluno
-     * @return O aluno encontrado
-     * @throws AlunoNaoEncontradoException Se não encontrar
      */
     public Aluno buscarPorCpf(String cpf) {
         return alunoRepository.findByCpf(cpf)
@@ -61,10 +63,6 @@ public class AlunoService implements CrudService<Aluno, Long> {
 
     /**
      * Busca um aluno pela matrícula.
-     *
-     * @param matricula A matrícula do aluno
-     * @return O aluno encontrado
-     * @throws AlunoNaoEncontradoException Se não encontrar
      */
     public Aluno buscarPorMatricula(String matricula) {
         return alunoRepository.findByMatricula(matricula)
@@ -73,9 +71,6 @@ public class AlunoService implements CrudService<Aluno, Long> {
 
     /**
      * Busca alunos por plano.
-     *
-     * @param plano O plano de treino
-     * @return Lista de alunos com o plano
      */
     public List<Aluno> buscarPorPlano(String plano) {
         return alunoRepository.findByPlanoIgnoreCase(plano);
@@ -83,9 +78,6 @@ public class AlunoService implements CrudService<Aluno, Long> {
 
     /**
      * Inativa um aluno (altera status para false).
-     *
-     * @param id O ID do aluno
-     * @throws AlunoNaoEncontradoException Se não encontrar
      */
     public Aluno inativar(Long id) {
         Aluno aluno = buscarPorId(id);
@@ -95,9 +87,6 @@ public class AlunoService implements CrudService<Aluno, Long> {
 
     /**
      * Ativa um aluno (altera status para true).
-     *
-     * @param id O ID do aluno
-     * @throws AlunoNaoEncontradoException Se não encontrar
      */
     public Aluno ativar(Long id) {
         Aluno aluno = buscarPorId(id);
@@ -106,29 +95,86 @@ public class AlunoService implements CrudService<Aluno, Long> {
     }
 
     /**
+     * Busca alunos por status
+     */
+    public List<Aluno> buscarPorStatus(Boolean status) {
+        return alunoRepository.findByStatus(status);
+    }
+
+    /**
+     * Busca alunos por plano e status
+     */
+    public List<Aluno> buscarPorPlanoEStatus(String plano, Boolean status) {
+        return alunoRepository.findByPlanoIgnoreCaseAndStatus(plano, status);
+    }
+
+    /**
+     * Busca alunos de uma academia
+     */
+    public List<Aluno> buscarPorAcademia(Long academiaId) {
+        return alunoRepository.findByAcademiaId(academiaId);
+    }
+
+    /**
+     * Busca alunos ativos de uma academia
+     */
+    public List<Aluno> buscarAlunosAtivosDeAcademia(Long academiaId) {
+        return alunoRepository.findAlunosAtivosDeAcademia(academiaId);
+    }
+
+    /**
+     * Busca alunos por período de início
+     */
+    public List<Aluno> buscarPorPeriodo(String dataInicio, String dataFim) {
+        return alunoRepository.findByDataInicioBetween(dataInicio, dataFim);
+    }
+
+    /**
+     * Busca alunos sem academia
+     */
+    public List<Aluno> buscarSemAcademia() {
+        return alunoRepository.findByAcademiaIsNull();
+    }
+
+    /**
+     * Vincula um aluno a uma academia
+     */
+    public Aluno vincularAcademia(Long alunoId, Long academiaId) {
+        Aluno aluno = buscarPorId(alunoId);
+        Academia academia = academiaRepository.findById(academiaId)
+            .orElseThrow(() -> new AlunoInvalidoException("Academia com ID " + academiaId + " não encontrada"));
+        aluno.setAcademia(academia);
+        return alunoRepository.save(aluno);
+    }
+
+    /**
+     * Desvincula um aluno de sua academia
+     */
+    public Aluno desvincularAcademia(Long alunoId) {
+        Aluno aluno = buscarPorId(alunoId);
+        aluno.setAcademia(null);
+        return alunoRepository.save(aluno);
+    }
+
+    /**
+     * Obtém estatísticas sobre alunos
+     */
+    public Map<String, Long> obterEstatisticas() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("total", alunoRepository.count());
+        stats.put("ativos", alunoRepository.countByStatus(true));
+        stats.put("inativos", alunoRepository.countByStatus(false));
+        return stats;
+    }
+
+    /**
      * Valida os dados do aluno antes de salvar.
-     *
-     * @param aluno O aluno a validar
-     * @throws AlunoInvalidoException Se o aluno for inválido
+     * Validação básica - Bean Validation cuida do resto
      */
     private void validarAluno(Aluno aluno) {
         if (aluno == null) {
             throw new AlunoInvalidoException("Aluno não pode ser nulo");
         }
-        if (aluno.getNome() == null || aluno.getNome().trim().isEmpty()) {
-            throw new AlunoInvalidoException("Nome do aluno é obrigatório");
-        }
-        if (aluno.getCpf() == null || aluno.getCpf().trim().isEmpty()) {
-            throw new AlunoInvalidoException("CPF do aluno é obrigatório");
-        }
-        if (aluno.getEmail() == null || aluno.getEmail().trim().isEmpty()) {
-            throw new AlunoInvalidoException("Email do aluno é obrigatório");
-        }
-        if (aluno.getMatricula() == null || aluno.getMatricula().trim().isEmpty()) {
-            throw new AlunoInvalidoException("Matrícula do aluno é obrigatória");
-        }
-        if (aluno.getStatus() == null) {
-            throw new AlunoInvalidoException("Status do aluno é obrigatório");
-        }
     }
 }
+

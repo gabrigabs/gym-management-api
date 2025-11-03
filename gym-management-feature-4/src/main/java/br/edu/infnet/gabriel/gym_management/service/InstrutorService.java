@@ -1,12 +1,16 @@
 package br.edu.infnet.gabriel.gym_management.service;
 
 import br.edu.infnet.gabriel.gym_management.model.Instrutor;
+import br.edu.infnet.gabriel.gym_management.model.Academia;
 import br.edu.infnet.gabriel.gym_management.repository.InstrutorRepository;
+import br.edu.infnet.gabriel.gym_management.repository.AcademiaRepository;
 import br.edu.infnet.gabriel.gym_management.exception.InstrutorInvalidoException;
 import br.edu.infnet.gabriel.gym_management.exception.InstrutorNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Serviço responsável pela gestão de Instrutores.
@@ -16,9 +20,11 @@ import java.util.List;
 public class InstrutorService implements CrudService<Instrutor, Long> {
 
     private final InstrutorRepository instrutorRepository;
+    private final AcademiaRepository academiaRepository;
 
-    public InstrutorService(InstrutorRepository instrutorRepository) {
+    public InstrutorService(InstrutorRepository instrutorRepository, AcademiaRepository academiaRepository) {
         this.instrutorRepository = instrutorRepository;
+        this.academiaRepository = academiaRepository;
     }
 
     @Override
@@ -49,10 +55,6 @@ public class InstrutorService implements CrudService<Instrutor, Long> {
 
     /**
      * Busca um instrutor pelo CPF.
-     *
-     * @param cpf O CPF do instrutor
-     * @return O instrutor encontrado
-     * @throws InstrutorNaoEncontradoException Se não encontrar
      */
     public Instrutor buscarPorCpf(String cpf) {
         return instrutorRepository.findByCpf(cpf)
@@ -61,9 +63,6 @@ public class InstrutorService implements CrudService<Instrutor, Long> {
 
     /**
      * Busca instrutores pela especialidade.
-     *
-     * @param especialidade A especialidade
-     * @return Lista de instrutores com a especialidade
      */
     public List<Instrutor> buscarPorEspecialidade(String especialidade) {
         return instrutorRepository.findByEspecialidadeIgnoreCase(especialidade);
@@ -71,9 +70,6 @@ public class InstrutorService implements CrudService<Instrutor, Long> {
 
     /**
      * Inativa um instrutor (altera status para false via PATCH).
-     *
-     * @param id O ID do instrutor
-     * @throws InstrutorNaoEncontradoException Se não encontrar
      */
     public Instrutor inativar(Long id) {
         Instrutor instrutor = buscarPorId(id);
@@ -83,9 +79,6 @@ public class InstrutorService implements CrudService<Instrutor, Long> {
 
     /**
      * Ativa um instrutor (altera status para true).
-     *
-     * @param id O ID do instrutor
-     * @throws InstrutorNaoEncontradoException Se não encontrar
      */
     public Instrutor ativar(Long id) {
         Instrutor instrutor = buscarPorId(id);
@@ -94,32 +87,107 @@ public class InstrutorService implements CrudService<Instrutor, Long> {
     }
 
     /**
+     * Busca um instrutor pelo registro
+     */
+    public Instrutor buscarPorRegistro(String registro) {
+        return instrutorRepository.findByRegistro(registro)
+                .orElseThrow(() -> new InstrutorNaoEncontradoException("Instrutor com registro " + registro + " não encontrado"));
+    }
+
+    /**
+     * Busca instrutores por status
+     */
+    public List<Instrutor> buscarPorStatus(Boolean status) {
+        return instrutorRepository.findByStatus(status);
+    }
+
+    /**
+     * Busca instrutores por especialidade e status
+     */
+    public List<Instrutor> buscarPorEspecialidadeEStatus(String especialidade, Boolean status) {
+        return instrutorRepository.findByEspecialidadeIgnoreCaseAndStatus(especialidade, status);
+    }
+
+    /**
+     * Busca instrutores por faixa de salário
+     */
+    public List<Instrutor> buscarPorFaixaSalario(Double min, Double max) {
+        return instrutorRepository.findBySalarioBetween(min, max);
+    }
+
+    /**
+     * Busca instrutores com salário acima de um valor
+     */
+    public List<Instrutor> buscarComSalarioAcima(Double valor) {
+        return instrutorRepository.findInstrutoresComSalarioAcima(valor);
+    }
+
+    /**
+     * Busca instrutores de uma academia
+     */
+    public List<Instrutor> buscarPorAcademia(Long academiaId) {
+        return instrutorRepository.findByAcademiaId(academiaId);
+    }
+
+    /**
+     * Busca instrutores ativos de uma academia
+     */
+    public List<Instrutor> buscarInstrutoresAtivosDeAcademia(Long academiaId) {
+        return instrutorRepository.findInstrutoresAtivosDeAcademia(academiaId);
+    }
+
+    /**
+     * Busca instrutores sem academia
+     */
+    public List<Instrutor> buscarSemAcademia() {
+        return instrutorRepository.findByAcademiaIsNull();
+    }
+
+    /**
+     * Busca instrutores por cidade do endereço
+     */
+    public List<Instrutor> buscarPorCidade(String cidade) {
+        return instrutorRepository.findByEnderecoLocalidade(cidade);
+    }
+
+    /**
+     * Vincula um instrutor a uma academia
+     */
+    public Instrutor vincularAcademia(Long instrutorId, Long academiaId) {
+        Instrutor instrutor = buscarPorId(instrutorId);
+        Academia academia = academiaRepository.findById(academiaId)
+            .orElseThrow(() -> new InstrutorInvalidoException("Academia com ID " + academiaId + " não encontrada"));
+        instrutor.setAcademia(academia);
+        return instrutorRepository.save(instrutor);
+    }
+
+    /**
+     * Desvincula um instrutor de sua academia
+     */
+    public Instrutor desvincularAcademia(Long instrutorId) {
+        Instrutor instrutor = buscarPorId(instrutorId);
+        instrutor.setAcademia(null);
+        return instrutorRepository.save(instrutor);
+    }
+
+    /**
+     * Obtém estatísticas sobre instrutores
+     */
+    public Map<String, Long> obterEstatisticas() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("total", instrutorRepository.count());
+        stats.put("ativos", instrutorRepository.countByStatus(true));
+        stats.put("inativos", instrutorRepository.countByStatus(false));
+        return stats;
+    }
+
+    /**
      * Valida os dados do instrutor antes de salvar.
-     *
-     * @param instrutor O instrutor a validar
-     * @throws InstrutorInvalidoException Se o instrutor for inválido
+     * Validação básica - Bean Validation cuida do resto
      */
     private void validarInstrutor(Instrutor instrutor) {
         if (instrutor == null) {
             throw new InstrutorInvalidoException("Instrutor não pode ser nulo");
-        }
-        if (instrutor.getNome() == null || instrutor.getNome().trim().isEmpty()) {
-            throw new InstrutorInvalidoException("Nome do instrutor é obrigatório");
-        }
-        if (instrutor.getCpf() == null || instrutor.getCpf().trim().isEmpty()) {
-            throw new InstrutorInvalidoException("CPF do instrutor é obrigatório");
-        }
-        if (instrutor.getEmail() == null || instrutor.getEmail().trim().isEmpty()) {
-            throw new InstrutorInvalidoException("Email do instrutor é obrigatório");
-        }
-        if (instrutor.getRegistro() == null || instrutor.getRegistro().trim().isEmpty()) {
-            throw new InstrutorInvalidoException("Registro do instrutor é obrigatório");
-        }
-        if (instrutor.getSalario() == null || instrutor.getSalario() <= 0) {
-            throw new InstrutorInvalidoException("Salário deve ser maior que zero");
-        }
-        if (instrutor.getStatus() == null) {
-            throw new InstrutorInvalidoException("Status do instrutor é obrigatório");
         }
     }
 }

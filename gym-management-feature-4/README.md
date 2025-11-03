@@ -1,239 +1,405 @@
-# Gym Management API - Sistema de Gerenciamento de Academias
+# Gym Management API - Feature 4
 
-## 📋 Visão Geral
+Sistema de gerenciamento de academias desenvolvido com Spring Boot, incluindo validação robusta, tratamento global de exceções, relacionamentos bidirecionais e query methods customizados.
 
-Sistema completo de gerenciamento de academias desenvolvido em Spring Boot, com persistência de dados usando Spring Data JPA e banco H2 em memória.
+## 📋 Índice
 
-**Versão Atual**: Feature 3 ✅  
-**Status**: Operacional com Banco de Dados Relacional
+- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+- [Novidades da Feature 4](#novidades-da-feature-4)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Modelo de Dados e Relacionamentos](#modelo-de-dados-e-relacionamentos)
+- [Validações Bean Validation](#validações-bean-validation)
+- [Tratamento Global de Exceções](#tratamento-global-de-exceções)
+- [Query Methods Customizados](#query-methods-customizados)
+- [Endpoints da API](#endpoints-da-api)
+- [Como Executar](#como-executar)
+- [Testando com Postman](#testando-com-postman)
+- [Exemplos de Requisições](#exemplos-de-requisições)
+- [Exemplos de Erros](#exemplos-de-erros)
 
----
+## 🚀 Tecnologias Utilizadas
 
-## 🎯 Features Implementadas
-
-### ✅ Feature 1: Configuração e Gestão de Academias
-- Modelagem da entidade Academia
-- CRUD completo para Academias
-- Carregamento automático de dados de arquivo
-
-### ✅ Feature 2: Gestão de Instrutores e Alunos
-- Hierarquia de classes com Pessoa (abstrata)
-- Entidades Instrutor e Aluno (herdam de Pessoa)
-- Entidade Endereco com relação 1:1 com Instrutor
-- CRUD completo para Instrutores, Alunos e Endereços
-- Métodos específicos de busca
-- PATCH para inativar/ativar status
-- Validações customizadas com exceções
-
-### ✅ Feature 3: Persistência com JPA e H2 Database
-- **Spring Data JPA** integrado para persistência
-- **Banco H2** em memória configurado
-- **Entidades JPA** com anotações:
-  - `@Entity`, `@Table`, `@Id`, `@GeneratedValue`
-  - `@MappedSuperclass` para herança (Pessoa)
-  - `@OneToOne` para relacionamento Instrutor-Endereco
-  - `@Column` com constraints (unique, nullable)
-- **JPA Repositories** substituindo ConcurrentHashMap
-- **IDs auto-incrementais** via `GenerationType.IDENTITY`
-- **H2 Console** habilitado para inspeção do banco
-- **Controllers** retornando `ResponseEntity` com status HTTP corretos:
-  - **200 OK** para consultas bem-sucedidas
-  - **201 CREATED** para criação de recursos
-  - **204 NO CONTENT** para deleções bem-sucedidas
-  - **400 BAD REQUEST** para validações falhadas
-  - **404 NOT FOUND** para recursos não encontrados
-
----
-
-## 🗄️ Arquitetura e Tecnologias
-
-### Stack Tecnológico
 - **Java 21**
 - **Spring Boot 3.5.7**
-- **Spring Data JPA** - Persistência e Repositórios
-- **H2 Database** - Banco de dados em memória
-- **Hibernate** - ORM (Object-Relational Mapping)
-- **Lombok** - Redução de boilerplate
-- **Maven** - Gerenciamento de dependências
+- **Spring Data JPA**
+- **Spring Boot Validation** (Bean Validation)
+- **H2 Database** (banco em memória)
+- **Lombok**
+- **Maven**
 
-### Camadas da Aplicação
+## 🆕 Novidades da Feature 4
+
+### 1. **Validação Robusta com Bean Validation**
+
+Todas as entidades agora possuem validações robustas usando anotações do Bean Validation:
+- `@NotBlank` - Campos obrigatórios que não podem ser vazios
+- `@NotNull` - Campos obrigatórios que não podem ser nulos
+- `@Size` - Restrições de tamanho mínimo e máximo
+- `@Email` - Validação de formato de email
+- `@Pattern` - Validação com expressões regulares (CPF, CNPJ, telefone, etc.)
+- `@Min` - Valor mínimo para campos numéricos
+- `@Valid` - Validação em cascata para objetos aninhados
+
+### 2. **Tratamento Global de Exceções**
+
+Implementado `@ControllerAdvice` com `@ExceptionHandler` para tratamento centralizado de erros:
+- Retorna JSON padronizado com detalhes do erro
+- Inclui timestamp, status HTTP, mensagem e caminho da requisição
+- Para erros de validação, retorna lista detalhada de erros por campo
+- Trata violações de integridade (unique constraints, etc.)
+
+### 3. **Relacionamentos Bidirecionais**
+
+Implementados relacionamentos OneToMany e ManyToOne:
+- **Academia → Instrutores** (OneToMany)
+- **Academia → Alunos** (OneToMany)
+- **Instrutor → Academia** (ManyToOne)
+- **Aluno → Academia** (ManyToOne)
+- **Instrutor → Endereco** (OneToOne)
+
+Todos os relacionamentos usam `@JsonManagedReference` e `@JsonBackReference` para evitar loops infinitos na serialização JSON.
+
+### 4. **Query Methods Customizados**
+
+Repositórios expandidos com query methods para buscas avançadas:
+- Busca por status (ativos/inativos)
+- Busca por ranges (salário, datas)
+- Busca por múltiplos critérios
+- Queries JPQL customizadas com subconsultas
+- Queries com relacionamentos (JOIN)
+
+### 5. **Remoção de Loaders**
+
+Como a aplicação agora usa banco de dados remoto/persistente, todos os loaders e arquivos de texto foram removidos. Os dados são gerenciados exclusivamente via API REST.
+
+## 📁 Estrutura do Projeto
 
 ```
-┌─────────────────────────────────────┐
-│    Controllers (REST API)           │
-│  - AcademyController                │
-│  - AlunoController                  │
-│  - InstrutorController              │
-│  - EnderecoController               │
-└────────────┬────────────────────────┘
-             │
-┌────────────▼────────────────────────┐
-│         Services (Lógica)           │
-│  - AcademyService                   │
-│  - AlunoService                     │
-│  - InstrutorService                 │
-│  - EnderecoService                  │
-└────────────┬────────────────────────┘
-             │
-┌────────────▼────────────────────────┐
-│    Repositories (JPA)               │
-│  - AcademiaRepository               │
-│  - AlunoRepository                  │
-│  - InstrutorRepository              │
-│  - EnderecoRepository               │
-└────────────┬────────────────────────┘
-             │
-┌────────────▼────────────────────────┐
-│      H2 Database (em memória)       │
-│  - academias                        │
-│  - alunos                           │
-│  - instrutores                      │
-│  - enderecos                        │
-└─────────────────────────────────────┘
+src/main/java/br/edu/infnet/gabriel/gym_management/
+├── controller/          # Controllers REST
+│   ├── AcademyController.java
+│   ├── AlunoController.java
+│   ├── InstrutorController.java
+│   └── EnderecoController.java
+├── exception/           # Exceções e tratamento global
+│   ├── GlobalExceptionHandler.java
+│   ├── ErrorResponse.java
+│   ├── AlunoInvalidoException.java
+│   ├── AlunoNaoEncontradoException.java
+│   ├── InstrutorInvalidoException.java
+│   ├── InstrutorNaoEncontradoException.java
+│   └── EnderecoInvalidoException.java
+├── model/              # Entidades JPA
+│   ├── Academia.java
+│   ├── Aluno.java
+│   ├── Instrutor.java
+│   ├── Endereco.java
+│   └── Pessoa.java
+├── repository/         # Repositórios JPA
+│   ├── AcademiaRepository.java
+│   ├── AlunoRepository.java
+│   ├── InstrutorRepository.java
+│   └── EnderecoRepository.java
+└── service/           # Serviços de negócio
+    ├── AcademyService.java
+    ├── AlunoService.java
+    ├── InstrutorService.java
+    ├── EnderecoService.java
+    └── CrudService.java
 ```
 
----
-
-## 🗃️ Modelo de Dados (JPA)
+## 🗂️ Modelo de Dados e Relacionamentos
 
 ### Academia
 ```java
-@Entity
-@Table(name = "academias")
-public class Academia {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String nome;
-    
-    @Column(nullable = false, unique = true)
-    private String cnpj;
-    
-    @Column(nullable = false)
-    private String endereco;
-    
-    private String telefone;
-    
-    @Column(nullable = false)
-    private Boolean statusAtivo;
-}
+- id: Long (PK, auto-generated)
+- nome: String (3-100 caracteres, obrigatório)
+- cnpj: String (formato XX.XXX.XXX/XXXX-XX, obrigatório, único)
+- endereco: String (10-200 caracteres, obrigatório)
+- telefone: String (formato (XX) XXXXX-XXXX, opcional)
+- statusAtivo: Boolean (obrigatório)
+- instrutores: List<Instrutor> (OneToMany)
+- alunos: List<Aluno> (OneToMany)
 ```
 
-### Pessoa (MappedSuperclass)
+### Pessoa (Classe Abstrata - @MappedSuperclass)
 ```java
-@MappedSuperclass
-public abstract class Pessoa {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String nome;
-    
-    @Column(nullable = false, unique = true)
-    private String email;
-    
-    @Column(nullable = false, unique = true)
-    private String cpf;
-    
-    private String telefone;
-}
+- id: Long (PK, auto-generated)
+- nome: String (3-100 caracteres, obrigatório)
+- email: String (formato válido, obrigatório, único)
+- cpf: String (formato XXX.XXX.XXX-XX, obrigatório, único)
+- telefone: String (formato (XX) XXXXX-XXXX, opcional)
 ```
 
-### Aluno
+### Aluno (extends Pessoa)
 ```java
-@Entity
-@Table(name = "alunos")
-public class Aluno extends Pessoa {
-    @Column(nullable = false, unique = true)
-    private String matricula;
-    
-    private String plano;
-    private String dataInicio;
-    
-    @Column(nullable = false)
-    private Boolean status;
-}
+- matricula: String (formato MATXXX, obrigatório, único)
+- plano: String (3-50 caracteres, obrigatório)
+- dataInicio: String (formato YYYY-MM-DD, obrigatório)
+- status: Boolean (obrigatório)
+- academia: Academia (ManyToOne, opcional)
 ```
 
-### Instrutor
+### Instrutor (extends Pessoa)
 ```java
-@Entity
-@Table(name = "instrutores")
-public class Instrutor extends Pessoa {
-    @Column(nullable = false, unique = true)
-    private String registro;
-    
-    private String especialidade;
-    
-    @Column(nullable = false)
-    private Double salario;
-    
-    @Column(nullable = false)
-    private Boolean status;
-    
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "endereco_id", referencedColumnName = "id")
-    private Endereco endereco;
-}
+- registro: String (formato REGXXX, obrigatório, único)
+- especialidade: String (3-50 caracteres, obrigatório)
+- salario: Double (mínimo 1320, obrigatório)
+- status: Boolean (obrigatório)
+- endereco: Endereco (OneToOne, cascade ALL, opcional)
+- academia: Academia (ManyToOne, opcional)
 ```
 
 ### Endereco
 ```java
-@Entity
-@Table(name = "enderecos")
-public class Endereco {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
-    private String cep;
-    
-    @Column(nullable = false)
-    private String logradouro;
-    
-    private String complemento;
-    private String unidade;
-    private String bairro;
-    private String localidade;
-    private String uf;
-    private String estado;
+- id: Long (PK, auto-generated)
+- cep: String (formato XXXXX-XXX, obrigatório)
+- logradouro: String (3-200 caracteres, obrigatório)
+- complemento: String (máx 100 caracteres, opcional)
+- unidade: String (máx 20 caracteres, opcional)
+- bairro: String (3-100 caracteres, obrigatório)
+- localidade: String (3-100 caracteres, obrigatório)
+- uf: String (2 letras maiúsculas, obrigatório)
+- estado: String (3-50 caracteres, obrigatório)
+```
+
+## ✅ Validações Bean Validation
+
+### Validações Comuns em Todas as Entidades
+
+#### Academia
+- **nome**: `@NotBlank`, `@Size(min=3, max=100)`
+- **cnpj**: `@NotBlank`, `@Pattern` (formato 99.999.999/9999-99)
+- **endereco**: `@NotBlank`, `@Size(min=10, max=200)`
+- **telefone**: `@Pattern` (formato (99) 99999-9999)
+- **statusAtivo**: `@NotNull`
+
+#### Pessoa (Aluno e Instrutor herdam)
+- **nome**: `@NotBlank`, `@Size(min=3, max=100)`
+- **email**: `@NotBlank`, `@Email`
+- **cpf**: `@NotBlank`, `@Pattern` (formato 999.999.999-99)
+- **telefone**: `@Pattern` (formato (99) 99999-9999)
+
+#### Aluno
+- **matricula**: `@NotBlank`, `@Pattern` (formato MAT999)
+- **plano**: `@NotBlank`, `@Size(min=3, max=50)`
+- **dataInicio**: `@NotBlank`, `@Pattern` (formato YYYY-MM-DD)
+- **status**: `@NotNull`
+
+#### Instrutor
+- **registro**: `@NotBlank`, `@Pattern` (formato REG999)
+- **especialidade**: `@NotBlank`, `@Size(min=3, max=50)`
+- **salario**: `@NotNull`, `@Min(1320)` (salário mínimo)
+- **status**: `@NotNull`
+- **endereco**: `@Valid` (validação em cascata)
+
+#### Endereco
+- **cep**: `@NotBlank`, `@Pattern` (formato 99999-999)
+- **logradouro**: `@NotBlank`, `@Size(min=3, max=200)`
+- **complemento**: `@Size(max=100)`
+- **unidade**: `@Size(max=20)`
+- **bairro**: `@NotBlank`, `@Size(min=3, max=100)`
+- **localidade**: `@NotBlank`, `@Size(min=3, max=100)`
+- **uf**: `@NotBlank`, `@Pattern` (2 letras maiúsculas)
+- **estado**: `@NotBlank`, `@Size(min=3, max=50)`
+
+## 🛡️ Tratamento Global de Exceções
+
+### Estrutura da Resposta de Erro
+
+```json
+{
+  "timestamp": "2025-11-03T18:30:00",
+  "status": 400,
+  "error": "Validation Error",
+  "message": "Erro de validação nos campos fornecidos",
+  "path": "/alunos",
+  "fieldErrors": [
+    {
+      "field": "cpf",
+      "message": "CPF deve estar no formato XXX.XXX.XXX-XX",
+      "rejectedValue": "12345678900"
+    },
+    {
+      "field": "email",
+      "message": "Email deve ser válido",
+      "rejectedValue": "email-invalido"
+    }
+  ]
 }
 ```
 
----
+### Tipos de Erros Tratados
 
-## ⚙️ Configuração
+1. **Validação (400 Bad Request)**
+   - Erros de Bean Validation
+   - Campos obrigatórios faltando
+   - Formatos inválidos
 
-### application.properties
-```properties
-spring.application.name=gym-management
+2. **Not Found (404)**
+   - Recurso não encontrado por ID
+   - CPF/matrícula/registro não encontrado
 
-# H2 Database Configuration
-spring.datasource.url=jdbc:h2:mem:gymdb
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
+3. **Conflict (409)**
+   - Violação de unique constraints
+   - CPF/email/matrícula/registro duplicado
 
-# H2 Console Configuration
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
+4. **Internal Server Error (500)**
+   - Erros inesperados
 
-# JPA/Hibernate Configuration
-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
+## 🔍 Query Methods Customizados
 
-# Logging
-logging.level.org.hibernate.SQL=DEBUG
-logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+### AcademiaRepository
+
+```java
+// Busca por status
+List<Academia> findByStatusAtivo(Boolean statusAtivo);
+
+// Busca por nome (contém, case insensitive)
+List<Academia> findByNomeContainingIgnoreCase(String nome);
+
+// Busca academias ativas com instrutores (JPQL com JOIN FETCH)
+List<Academia> findAcademiasAtivasComInstrutores();
+
+// Busca academias com pelo menos X alunos (JPQL com SIZE)
+List<Academia> findAcademiasComMinimoAlunos(int minAlunos);
+
+// Conta academias ativas
+Long countByStatusAtivo(Boolean statusAtivo);
 ```
 
----
+### AlunoRepository
+
+```java
+// Busca por status
+List<Aluno> findByStatus(Boolean status);
+
+// Busca por plano e status
+List<Aluno> findByPlanoIgnoreCaseAndStatus(String plano, Boolean status);
+
+// Busca por academia
+List<Aluno> findByAcademiaId(Long academiaId);
+
+// Busca alunos ativos de uma academia (JPQL)
+List<Aluno> findAlunosAtivosDeAcademia(Long academiaId);
+
+// Busca por período de início (JPQL com BETWEEN)
+List<Aluno> findByDataInicioBetween(String dataInicio, String dataFim);
+
+// Busca alunos sem academia
+List<Aluno> findByAcademiaIsNull();
+
+// Conta alunos ativos
+Long countByStatus(Boolean status);
+```
+
+### InstrutorRepository
+
+```java
+// Busca por status
+List<Instrutor> findByStatus(Boolean status);
+
+// Busca por especialidade e status
+List<Instrutor> findByEspecialidadeIgnoreCaseAndStatus(String especialidade, Boolean status);
+
+// Busca por faixa de salário
+List<Instrutor> findBySalarioBetween(Double salarioMin, Double salarioMax);
+
+// Busca instrutores com salário acima de X (JPQL com ORDER BY)
+List<Instrutor> findInstrutoresComSalarioAcima(Double salarioMinimo);
+
+// Busca por academia
+List<Instrutor> findByAcademiaId(Long academiaId);
+
+// Busca instrutores ativos de uma academia (JPQL)
+List<Instrutor> findInstrutoresAtivosDeAcademia(Long academiaId);
+
+// Busca instrutores sem academia
+List<Instrutor> findByAcademiaIsNull();
+
+// Busca por cidade do endereço (JPQL com JOIN)
+List<Instrutor> findByEnderecoLocalidade(String cidade);
+
+// Conta instrutores ativos
+Long countByStatus(Boolean status);
+```
+
+## 📡 Endpoints da API
+
+### Academias (`/academias`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/academias` | Lista todas as academias |
+| GET | `/academias/{id}` | Busca academia por ID |
+| GET | `/academias/status/{status}` | Busca por status (true/false) |
+| GET | `/academias/buscar?nome={nome}` | Busca por nome (contém) |
+| GET | `/academias/ativas-com-instrutores` | Lista academias ativas com instrutores |
+| GET | `/academias/minimo-alunos/{quantidade}` | Academias com pelo menos X alunos |
+| GET | `/academias/estatisticas` | Estatísticas (total, ativas, inativas) |
+| POST | `/academias` | Cria nova academia |
+| PUT | `/academias/{id}` | Atualiza academia |
+| DELETE | `/academias/{id}` | Deleta academia |
+
+### Alunos (`/alunos`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/alunos` | Lista todos os alunos |
+| GET | `/alunos/{id}` | Busca aluno por ID |
+| GET | `/alunos/cpf/{cpf}` | Busca por CPF |
+| GET | `/alunos/matricula/{matricula}` | Busca por matrícula |
+| GET | `/alunos/plano/{plano}` | Busca por plano |
+| GET | `/alunos/status/{status}` | Busca por status |
+| GET | `/alunos/plano/{plano}/status/{status}` | Busca por plano E status |
+| GET | `/alunos/academia/{academiaId}` | Alunos de uma academia |
+| GET | `/alunos/academia/{academiaId}/ativos` | Alunos ativos de uma academia |
+| GET | `/alunos/sem-academia` | Alunos sem academia |
+| GET | `/alunos/periodo?dataInicio={data}&dataFim={data}` | Alunos por período |
+| GET | `/alunos/estatisticas` | Estatísticas |
+| POST | `/alunos` | Cria novo aluno |
+| PUT | `/alunos/{id}` | Atualiza aluno |
+| PATCH | `/alunos/{id}/ativar` | Ativa aluno |
+| PATCH | `/alunos/{id}/inativar` | Inativa aluno |
+| PATCH | `/alunos/{id}/vincular-academia/{academiaId}` | Vincula a academia |
+| PATCH | `/alunos/{id}/desvincular-academia` | Desvincula de academia |
+| DELETE | `/alunos/{id}` | Deleta aluno |
+
+### Instrutores (`/instrutores`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/instrutores` | Lista todos os instrutores |
+| GET | `/instrutores/{id}` | Busca instrutor por ID |
+| GET | `/instrutores/cpf/{cpf}` | Busca por CPF |
+| GET | `/instrutores/registro/{registro}` | Busca por registro |
+| GET | `/instrutores/especialidade/{especialidade}` | Busca por especialidade |
+| GET | `/instrutores/status/{status}` | Busca por status |
+| GET | `/instrutores/especialidade/{esp}/status/{status}` | Busca por especialidade E status |
+| GET | `/instrutores/salario?min={valor}&max={valor}` | Busca por faixa salarial |
+| GET | `/instrutores/salario-acima/{valor}` | Instrutores com salário acima de X |
+| GET | `/instrutores/academia/{academiaId}` | Instrutores de uma academia |
+| GET | `/instrutores/academia/{academiaId}/ativos` | Instrutores ativos de uma academia |
+| GET | `/instrutores/sem-academia` | Instrutores sem academia |
+| GET | `/instrutores/cidade/{cidade}` | Busca por cidade do endereço |
+| GET | `/instrutores/estatisticas` | Estatísticas |
+| POST | `/instrutores` | Cria novo instrutor |
+| PUT | `/instrutores/{id}` | Atualiza instrutor |
+| PATCH | `/instrutores/{id}/ativar` | Ativa instrutor |
+| PATCH | `/instrutores/{id}/inativar` | Inativa instrutor |
+| PATCH | `/instrutores/{id}/vincular-academia/{academiaId}` | Vincula a academia |
+| PATCH | `/instrutores/{id}/desvincular-academia` | Desvincula de academia |
+| DELETE | `/instrutores/{id}` | Deleta instrutor |
+
+### Endereços (`/enderecos`)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/enderecos` | Lista todos os endereços |
+| GET | `/enderecos/{id}` | Busca endereço por ID |
+| POST | `/enderecos` | Cria novo endereço |
+| PUT | `/enderecos/{id}` | Atualiza endereço |
+| DELETE | `/enderecos/{id}` | Deleta endereço |
 
 ## 🚀 Como Executar
 
@@ -241,540 +407,379 @@ logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 - Java 21 ou superior
 - Maven 3.6+
 
-### Passos
+### Executar a Aplicação
 
-1. **Clone o repositório** (ou navegue até a pasta)
 ```bash
-cd gym-management-feature-3
-```
+# Clone o repositório
+git clone <repository-url>
 
-2. **Compile o projeto**
-```bash
-./mvnw clean compile
-```
+# Entre no diretório
+cd gym-management-feature-4
 
-3. **Execute a aplicação**
-```bash
+# Execute com Maven
 ./mvnw spring-boot:run
+
+# Ou no Windows
+mvnw.cmd spring-boot:run
 ```
 
-4. **A aplicação estará disponível em:**
-- API REST: `http://localhost:8080`
-- H2 Console: `http://localhost:8080/h2-console`
+A aplicação estará disponível em: `http://localhost:8080`
 
-### Acessando o H2 Console
+### Console H2 Database
 
-1. Abra o navegador em: `http://localhost:8080/h2-console`
-2. Use as seguintes credenciais:
-   - **JDBC URL**: `jdbc:h2:mem:gymdb`
-   - **User Name**: `sa`
-   - **Password**: (deixe em branco)
-3. Clique em "Connect"
+Acesse o console do H2 em: `http://localhost:8080/h2-console`
 
-Agora você pode executar queries SQL diretamente no banco:
-**Nota**: O banco inicia vazio. Use a API REST para criar dados via endpoints POST.
-
-Você pode executar queries SQL diretamente no banco:
-```sql
--- Ver todas as academias
-SELECT * FROM ACADEMIAS;
-
--- Ver todos os alunos
-SELECT * FROM ALUNOS;
-
--- Ver instrutores com seus endereços
-SELECT i.*, e.* 
-FROM INSTRUTORES i 
-LEFT JOIN ENDERECOS e ON i.ENDERECO_ID = e.ID;
-
--- Contar registros por tabela
-SELECT 'ACADEMIAS' AS TABELA, COUNT(*) AS TOTAL FROM ACADEMIAS
-UNION ALL
-SELECT 'ALUNOS', COUNT(*) FROM ALUNOS
-UNION ALL
-SELECT 'INSTRUTORES', COUNT(*) FROM INSTRUTORES
-UNION ALL
-SELECT 'ENDERECOS', COUNT(*) FROM ENDERECOS;
+```
+JDBC URL: jdbc:h2:mem:testdb
+Username: sa
+Password: (deixar vazio)
 ```
 
----
+## 📮 Testando com Postman
 
-## 📡 API Endpoints
-
-### Academias
-
-#### GET /academias
-Lista todas as academias.
-
-**Resposta: 200 OK**
-```json
-[
-  {
-    "id": 1,
-    "nome": "Academia Força Total",
-    "cnpj": "12.345.678/0001-00",
-    "endereco": "Rua A, 123 - Centro",
-    "telefone": "(11) 9876-5432",
-    "statusAtivo": true
-  }
-]
-```
-
-#### GET /academias/{id}
-Busca uma academia por ID.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### POST /academias
-Cria uma nova academia.
-
-**Request Body:**
-```json
-{
-  "nome": "Academia Nova",
-  "cnpj": "99.888.777/0001-66",
-  "endereco": "Rua Nova, 999",
-  "telefone": "(11) 9999-8888",
-  "statusAtivo": true
-}
-```
-
-**Resposta: 201 CREATED**
-```json
-{
-  "id": 5,
-  "nome": "Academia Nova",
-  "cnpj": "99.888.777/0001-66",
-  "endereco": "Rua Nova, 999",
-  "telefone": "(11) 9999-8888",
-  "statusAtivo": true
-}
-```
-
-#### PUT /academias/{id}
-Atualiza uma academia existente.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### DELETE /academias/{id}
-Remove uma academia.
-
-**Resposta: 204 NO CONTENT** ou **404 NOT FOUND**
-
----
-
-### Alunos
-
-#### GET /alunos
-Lista todos os alunos.
-
-**Resposta: 200 OK**
-```json
-[
-  {
-    "id": 1,
-    "nome": "Pedro Gomes",
-    "email": "pedro@gmail.com",
-    "cpf": "111.222.333-44",
-    "telefone": "11955555555",
-    "matricula": "MAT001",
-    "plano": "Gold",
-    "dataInicio": "2024-01-15",
-    "status": true
-  }
-]
-```
-
-#### GET /alunos/{id}
-Busca um aluno por ID.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### GET /alunos/cpf/{cpf}
-Busca um aluno por CPF.
-
-**Exemplo:** `GET /alunos/cpf/111.222.333-44`
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### GET /alunos/matricula/{matricula}
-Busca um aluno por matrícula.
-
-**Exemplo:** `GET /alunos/matricula/MAT001`
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### GET /alunos/plano/{plano}
-Busca alunos por plano (case insensitive).
-
-**Exemplo:** `GET /alunos/plano/gold`
-
-**Resposta: 200 OK**
-
-#### POST /alunos
-Cria um novo aluno.
-
-**Request Body:**
-```json
-{
-  "nome": "Maria Silva",
-  "email": "maria.silva@gmail.com",
-  "cpf": "999.888.777-66",
-  "telefone": "11988887777",
-  "matricula": "MAT999",
-  "plano": "Platinum",
-  "dataInicio": "2024-11-03",
-  "status": true
-}
-```
-
-**Resposta: 201 CREATED**
-
-#### PUT /alunos/{id}
-Atualiza um aluno existente.
-
-**Resposta: 200 OK**, **400 BAD REQUEST** ou **404 NOT FOUND**
-
-#### PATCH /alunos/{id}/ativar
-Ativa um aluno (status = true).
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### PATCH /alunos/{id}/inativar
-Inativa um aluno (status = false).
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### DELETE /alunos/{id}
-Remove um aluno.
-
-**Resposta: 204 NO CONTENT** ou **404 NOT FOUND**
-
----
-
-### Instrutores
-
-#### GET /instrutores
-Lista todos os instrutores.
-
-**Resposta: 200 OK**
-```json
-[
-  {
-    "id": 1,
-    "nome": "João Silva",
-    "email": "joao@gmail.com",
-    "cpf": "123.456.789-10",
-    "telefone": "11999999999",
-    "registro": "REG001",
-    "especialidade": "Musculação",
-    "salario": 5000.0,
-    "status": true,
-    "endereco": {
-      "id": 1,
-      "cep": "01310-100",
-      "logradouro": "Avenida Paulista",
-      "complemento": "Apto 100",
-      "unidade": "100",
-      "bairro": "Bela Vista",
-      "localidade": "São Paulo",
-      "uf": "SP",
-      "estado": "São Paulo"
-    }
-  }
-]
-```
-
-#### GET /instrutores/{id}
-Busca um instrutor por ID.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### GET /instrutores/cpf/{cpf}
-Busca um instrutor por CPF.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### GET /instrutores/especialidade/{especialidade}
-Busca instrutores por especialidade.
-
-**Exemplo:** `GET /instrutores/especialidade/musculacao`
-
-**Resposta: 200 OK**
-
-#### POST /instrutores
-Cria um novo instrutor.
-
-**Request Body:**
-```json
-{
-  "nome": "Carlos Mendes",
-  "email": "carlos.mendes@gmail.com",
-  "cpf": "888.777.666-55",
-  "telefone": "11977776666",
-  "registro": "REG999",
-  "especialidade": "CrossFit",
-  "salario": 6000.0,
-  "status": true,
-  "endereco": {
-    "cep": "04567-890",
-    "logradouro": "Rua das Flores",
-    "complemento": "Casa",
-    "unidade": "10",
-    "bairro": "Jardim Paulista",
-    "localidade": "São Paulo",
-    "uf": "SP",
-    "estado": "São Paulo"
-  }
-}
-```
-
-**Resposta: 201 CREATED**
-
-#### PUT /instrutores/{id}
-Atualiza um instrutor existente.
-
-**Resposta: 200 OK**, **400 BAD REQUEST** ou **404 NOT FOUND**
-
-#### PATCH /instrutores/{id}/ativar
-Ativa um instrutor.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### PATCH /instrutores/{id}/inativar
-Inativa um instrutor.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### DELETE /instrutores/{id}
-Remove um instrutor (e seu endereço em cascade).
-
-**Resposta: 204 NO CONTENT** ou **404 NOT FOUND**
-
----
-
-### Endereços
-
-#### GET /enderecos
-Lista todos os endereços.
-
-**Resposta: 200 OK**
-
-#### GET /enderecos/{id}
-Busca um endereço por ID.
-
-**Resposta: 200 OK** ou **404 NOT FOUND**
-
-#### POST /enderecos
-Cria um novo endereço.
-
-**Resposta: 201 CREATED** ou **400 BAD REQUEST**
-
-#### PUT /enderecos/{id}
-Atualiza um endereço.
-
-**Resposta: 200 OK**, **400 BAD REQUEST** ou **404 NOT FOUND**
-
-#### DELETE /enderecos/{id}
-Remove um endereço.
-
-**Resposta: 204 NO CONTENT** ou **404 NOT FOUND**
-
----
-
-## 🧪 Testando com Postman
-
-Uma collection completa do Postman está disponível no arquivo `Postman_Collection_Feature3.json`.
-
-### Importando a Collection
+### Importar a Collection
 
 1. Abra o Postman
-2. Clique em "Import"
-3. Selecione o arquivo `Postman_Collection_Feature3.json`
-4. A collection "Gym Management API - Feature 3" será importada
+2. Click em "Import"
+3. Selecione o arquivo `Postman_Collection_Feature4.json`
+4. A collection estará organizada por feature/pasta
 
-### Exemplos de Teste
+### Estrutura da Collection
 
-#### 1. Listar todas as academias (dados pré-carregados)
 ```
-GET http://localhost:8080/academias
+Gym Management API - Feature 4
+├── 01 - Academias
+│   ├── Criar Academia (Sucesso)
+│   ├── Criar Academia (Erro - Validação)
+│   ├── Listar Todas
+│   ├── Buscar por Status
+│   ├── Buscar por Nome
+│   ├── Academias Ativas com Instrutores
+│   ├── Academias com Mínimo de Alunos
+│   └── Estatísticas
+├── 02 - Alunos
+│   ├── Criar Aluno (Sucesso)
+│   ├── Criar Aluno (Erro - CPF Inválido)
+│   ├── Criar Aluno (Erro - Email Inválido)
+│   ├── Listar Todos
+│   ├── Buscar por Status
+│   ├── Buscar por Plano e Status
+│   ├── Buscar por Academia
+│   ├── Buscar por Período
+│   ├── Vincular a Academia
+│   ├── Desvincular de Academia
+│   └── Estatísticas
+├── 03 - Instrutores
+│   ├── Criar Instrutor (Sucesso)
+│   ├── Criar Instrutor (Erro - Salário Baixo)
+│   ├── Criar Instrutor (Erro - Registro Inválido)
+│   ├── Listar Todos
+│   ├── Buscar por Especialidade e Status
+│   ├── Buscar por Faixa Salarial
+│   ├── Buscar Salário Acima de Valor
+│   ├── Buscar por Cidade
+│   ├── Vincular a Academia
+│   ├── Desvincular de Academia
+│   └── Estatísticas
+└── 04 - Endereços
+    ├── Criar Endereço (Sucesso)
+    ├── Criar Endereço (Erro - CEP Inválido)
+    └── Listar Todos
 ```
 
-#### 2. Buscar aluno por matrícula
-```
-GET http://localhost:8080/alunos/matricula/MAT001
-```
+## 📝 Exemplos de Requisições
 
-#### 3. Criar novo aluno
-```
-POST http://localhost:8080/alunos
-Content-Type: application/json
+### Criar Academia (Sucesso)
 
+**POST** `/academias`
+
+```json
 {
-  "nome": "Teste Aluno",
-  "email": "teste@test.com",
-  "cpf": "123.123.123-99",
-  "telefone": "11999999999",
-  "matricula": "MAT9999",
-  "plano": "Bronze",
-  "dataInicio": "2024-11-03",
+  "nome": "Academia PowerGym",
+  "cnpj": "12.345.678/0001-90",
+  "endereco": "Rua das Flores, 123 - Centro",
+  "telefone": "(21) 98765-4321",
+  "statusAtivo": true
+}
+```
+
+**Resposta (201 Created):**
+```json
+{
+  "id": 1,
+  "nome": "Academia PowerGym",
+  "cnpj": "12.345.678/0001-90",
+  "endereco": "Rua das Flores, 123 - Centro",
+  "telefone": "(21) 98765-4321",
+  "statusAtivo": true,
+  "instrutores": [],
+  "alunos": []
+}
+```
+
+### Criar Aluno com Validação
+
+**POST** `/alunos`
+
+```json
+{
+  "nome": "João Silva",
+  "email": "joao.silva@email.com",
+  "cpf": "123.456.789-00",
+  "telefone": "(21) 99876-5432",
+  "matricula": "MAT001",
+  "plano": "Plano Mensal",
+  "dataInicio": "2025-01-15",
   "status": true
 }
 ```
 
-#### 4. Inativar um aluno
-```
-PATCH http://localhost:8080/alunos/1/inativar
-```
+### Criar Instrutor com Endereco
 
-#### 5. Buscar instrutores por especialidade
-```
-GET http://localhost:8080/instrutores/especialidade/pilates
-```
+**POST** `/instrutores`
 
-#### 6. Verificar dados no H2 Console
-Acesse `http://localhost:8080/h2-console` e execute:
-```sql
-SELECT * FROM ALUNOS WHERE STATUS = TRUE;
-```
-
----
-
-## 📊 Diferenças entre Features
-
-### Feature 1 vs Feature 2
-- **Feature 1**: Apenas Academia com ConcurrentHashMap
-- **Feature 2**: Adicionou Pessoa (hierarquia), Aluno, Instrutor, Endereco com relacionamento 1:1
-
-### Feature 2 vs Feature 3
-| Aspecto | Feature 2 | Feature 3 |
-|---------|-----------|-----------|
-| **Armazenamento** | ConcurrentHashMap (memória volátil) | H2 Database (persistência) |
-| **IDs** | AtomicInteger manual | JPA auto-increment |
-| **Repositórios** | Não existem | JpaRepository |
-| **Queries** | Streams Java | JPQL/SQL via Spring Data |
-| **Relacionamentos** | Apenas objetos Java | Mapeamento ORM com FK |
-| **Constraints** | Apenas validação Java | Constraints de banco (unique, nullable) |
-| **Inspeção** | Logs console | H2 Console (interface web) |
-| **Cascade** | Manual | Automático via JPA |
-| **Transações** | Não gerenciadas | Gerenciadas por Spring |
-
-### Benefícios da Feature 3
-
-✅ **Persistência Real**: Dados sobrevivem a reinicializações (em produção)  
-✅ **Integridade Referencial**: FK garantem consistência  
-✅ **Queries Otimizadas**: Hibernate gera SQL eficiente  
-✅ **Inspeção Visual**: H2 Console para debugging  
-✅ **Escalabilidade**: Fácil migração para PostgreSQL/MySQL  
-✅ **Transações ACID**: Garantia de consistência  
-✅ **Menos Código**: Spring Data reduz boilerplate  
-
----
-
-## 📝 Estrutura de Arquivos
-
-```
-gym-management-feature-3/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── br/edu/infnet/gabriel/gym_management/
-│   │   │       ├── GymManagementApplication.java
-│   │   │       ├── controller/
-│   │   │       │   ├── AcademyController.java
-│   │   │       │   ├── AlunoController.java
-│   │   │       │   ├── InstrutorController.java
-│   │   │       │   └── EnderecoController.java
-│   │   │       ├── model/
-│   │   │       │   ├── Academia.java (@Entity)
-│   │   │       │   ├── Pessoa.java (@MappedSuperclass)
-│   │   │       │   ├── Aluno.java (@Entity)
-│   │   │       │   ├── Instrutor.java (@Entity)
-│   │   │       │   └── Endereco.java (@Entity)
-│   │   │       ├── repository/
-│   │   │       │   ├── AcademiaRepository.java (JpaRepository)
-│   │   │       │   ├── AlunoRepository.java (JpaRepository)
-│   │   │       │   ├── InstrutorRepository.java (JpaRepository)
-│   │   │       │   └── EnderecoRepository.java (JpaRepository)
-│   │   │       ├── service/
-│   │   │       │   ├── AcademyService.java
-│   │   │       │   ├── AlunoService.java
-│   │   │       │   ├── InstrutorService.java
-│   │   │       │   └── EnderecoService.java
-│   │   │       └── exception/
-│   │   │           └── ...
-│   │   └── resources/
-│   │       ├── application.properties (configuração H2/JPA)
-│   │       ├── static/
-│   │       └── templates/
-│   └── test/
-├── pom.xml
-├── README.md
-└── Postman_Collection_Feature3.json
+```json
+{
+  "nome": "Maria Santos",
+  "email": "maria.santos@email.com",
+  "cpf": "987.654.321-00",
+  "telefone": "(21) 91234-5678",
+  "registro": "REG001",
+  "especialidade": "Musculação",
+  "salario": 3500.00,
+  "status": true,
+  "endereco": {
+    "cep": "20000-000",
+    "logradouro": "Rua Principal",
+    "complemento": "Apt 101",
+    "bairro": "Centro",
+    "localidade": "Rio de Janeiro",
+    "uf": "RJ",
+    "estado": "Rio de Janeiro"
+  }
+}
 ```
 
----
+### Vincular Aluno a Academia
 
-## 🔍 Logs e Debugging
+**PATCH** `/alunos/1/vincular-academia/1`
 
-Com `spring.jpa.show-sql=true`, você verá todas as queries SQL no console:
+(Sem body necessário)
 
-```sql
-Hibernate: 
-    create table academias (
-        id bigint generated by default as identity,
-        cnpj varchar(255) not null,
-        endereco varchar(255) not null,
-        nome varchar(255) not null,
-        status_ativo boolean not null,
-        telefone varchar(255),
-        primary key (id)
-    )
+### Buscar por Período
 
-Hibernate: 
-    insert into alunos
-        (cpf, email, nome, telefone, data_inicio, matricula, plano, status, id)
-    values
-        (?, ?, ?, ?, ?, ?, ?, ?, default)
+**GET** `/alunos/periodo?dataInicio=2025-01-01&dataFim=2025-12-31`
+
+### Buscar Instrutores por Faixa Salarial
+
+**GET** `/instrutores/salario?min=2000&max=5000`
+
+## ❌ Exemplos de Erros
+
+### Erro de Validação - CPF Inválido
+
+**POST** `/alunos`
+
+```json
+{
+  "nome": "João",
+  "email": "joao@email.com",
+  "cpf": "12345678900",
+  "matricula": "MAT001",
+  "plano": "Mensal",
+  "dataInicio": "2025-01-15",
+  "status": true
+}
 ```
 
----
+**Resposta (400 Bad Request):**
+```json
+{
+  "timestamp": "2025-11-03T18:30:00",
+  "status": 400,
+  "error": "Validation Error",
+  "message": "Erro de validação nos campos fornecidos",
+  "path": "/alunos",
+  "fieldErrors": [
+    {
+      "field": "cpf",
+      "message": "CPF deve estar no formato XXX.XXX.XXX-XX",
+      "rejectedValue": "12345678900"
+    }
+  ]
+}
+```
 
-## 🎓 Aprendizados da Feature 3
+### Erro de Validação - Múltiplos Campos
 
-1. **Spring Data JPA**: Criação de repositórios sem implementação
-2. **Hibernate/JPA**: Mapeamento objeto-relacional
-3. **H2 Database**: Banco em memória para desenvolvimento/testes
-4. **Herança JPA**: Uso de `@MappedSuperclass`
-5. **Relacionamentos**: `@OneToOne` com cascade
-6. **Constraints**: Unique, nullable via annotations
-7. **Auto-increment**: IDs gerenciados pelo banco
-8. **Transações**: Gerenciamento automático pelo Spring
-9. **ResponseEntity**: Status HTTP adequados em REST APIs
-10. **H2 Console**: Ferramenta de inspeção de dados
+**POST** `/instrutores`
 
----
+```json
+{
+  "nome": "M",
+  "email": "email-invalido",
+  "cpf": "123",
+  "registro": "ABC",
+  "especialidade": "M",
+  "salario": 500,
+  "status": true
+}
+```
 
-## 🚧 Próximos Passos (Features Futuras)
+**Resposta (400 Bad Request):**
+```json
+{
+  "timestamp": "2025-11-03T18:30:00",
+  "status": 400,
+  "error": "Validation Error",
+  "message": "Erro de validação nos campos fornecidos",
+  "path": "/instrutores",
+  "fieldErrors": [
+    {
+      "field": "nome",
+      "message": "Nome deve ter entre 3 e 100 caracteres",
+      "rejectedValue": "M"
+    },
+    {
+      "field": "email",
+      "message": "Email deve ser válido",
+      "rejectedValue": "email-invalido"
+    },
+    {
+      "field": "cpf",
+      "message": "CPF deve estar no formato XXX.XXX.XXX-XX",
+      "rejectedValue": "123"
+    },
+    {
+      "field": "registro",
+      "message": "Registro deve estar no formato REGXXX (3-6 dígitos)",
+      "rejectedValue": "ABC"
+    },
+    {
+      "field": "especialidade",
+      "message": "Especialidade deve ter entre 3 e 50 caracteres",
+      "rejectedValue": "M"
+    },
+    {
+      "field": "salario",
+      "message": "Salário deve ser no mínimo R$ 1.320,00 (salário mínimo)",
+      "rejectedValue": 500
+    }
+  ]
+}
+```
 
-- **Feature 4**: Autenticação e Autorização (Spring Security)
-- **Feature 5**: Validação com Bean Validation (@Valid, @NotNull, etc.)
-- **Feature 6**: Paginação e Ordenação
-- **Feature 7**: Testes Unitários e de Integração
-- **Feature 8**: Documentação com Swagger/OpenAPI
-- **Feature 9**: Deploy em ambiente de produção
-- **Feature 10**: Migração para PostgreSQL
+### Erro - Recurso Não Encontrado
 
----
+**GET** `/alunos/999`
+
+**Resposta (404 Not Found):**
+```json
+{
+  "timestamp": "2025-11-03T18:30:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Aluno com ID 999 não encontrado",
+  "path": "/alunos/999"
+}
+```
+
+### Erro - Violação de Integridade (CPF Duplicado)
+
+**POST** `/alunos`
+
+Tentando criar aluno com CPF já cadastrado:
+
+**Resposta (409 Conflict):**
+```json
+{
+  "timestamp": "2025-11-03T18:30:00",
+  "status": 409,
+  "error": "Conflict",
+  "message": "CPF já cadastrado no sistema",
+  "path": "/alunos"
+}
+```
+
+## 🎯 Boas Práticas Aplicadas
+
+1. **Separation of Concerns**: Controllers, Services, Repositories e Models bem separados
+2. **Bean Validation**: Validações declarativas nas entidades
+3. **Exception Handling**: Tratamento centralizado com mensagens claras
+4. **RESTful API**: Endpoints seguindo convenções REST
+5. **DTO Pattern**: Uso de ErrorResponse para padronizar erros
+6. **Cascade Operations**: Relacionamentos com cascade apropriado
+7. **Lazy Loading**: FetchType.LAZY em relacionamentos ManyToOne
+8. **JSON Management**: @JsonManagedReference/@JsonBackReference para evitar loops
+9. **Query Methods**: Métodos de query expressivos e type-safe
+10. **Documentation**: Javadoc em todos os métodos importantes
+
+## 📊 Estratégias de Validação
+
+### 1. Validação de Formato
+- **CPF**: `\d{3}\.\d{3}\.\d{3}-\d{2}`
+- **CNPJ**: `\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}`
+- **Telefone**: `\(\d{2}\) \d{4,5}-\d{4}`
+- **CEP**: `\d{5}-\d{3}` ou `\d{8}`
+- **UF**: `[A-Z]{2}`
+- **Data**: `\d{4}-\d{2}-\d{2}` (YYYY-MM-DD)
+- **Matrícula**: `MAT\d{3,6}`
+- **Registro**: `REG\d{3,6}`
+
+### 2. Validação de Tamanho
+- Campos de texto têm min/max definidos
+- Previne ataques de buffer overflow
+- Garante qualidade dos dados
+
+### 3. Validação de Valor
+- Salário mínimo: R$ 1.320,00
+- Campos obrigatórios não podem ser nulos ou vazios
+- Email deve ser válido
+
+### 4. Validação em Cascata
+- Endereco dentro de Instrutor é validado automaticamente com `@Valid`
+
+## 🔧 Configurações
+
+### application.properties
+
+```properties
+# H2 Database
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+
+# JPA/Hibernate
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+
+# H2 Console
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+
+# Server
+server.port=8080
+```
+
+## 📚 Referências
+
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
+- [Bean Validation (JSR 380)](https://beanvalidation.org/)
+- [Hibernate Validator](https://hibernate.org/validator/)
+- [RESTful API Design](https://restfulapi.net/)
 
 ## 👨‍💻 Autor
 
-Gabriel  
-Infnet - Desenvolvimento Java com Spring Boot
-
----
+Gabriel - [Infnet - Engenharia de Software]
 
 ## 📄 Licença
 
-Este projeto é de uso educacional.
+Este projeto foi desenvolvido para fins educacionais.
+
+---
+
+**Desenvolvido com ☕ e Spring Boot**
 

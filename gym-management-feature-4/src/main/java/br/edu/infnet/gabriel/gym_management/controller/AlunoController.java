@@ -2,17 +2,18 @@ package br.edu.infnet.gabriel.gym_management.controller;
 
 import br.edu.infnet.gabriel.gym_management.model.Aluno;
 import br.edu.infnet.gabriel.gym_management.service.AlunoService;
-import br.edu.infnet.gabriel.gym_management.exception.AlunoInvalidoException;
-import br.edu.infnet.gabriel.gym_management.exception.AlunoNaoEncontradoException;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador REST responsável pelos endpoints relacionados a Alunos.
  * Todos os endpoints utilizam o prefixo "/alunos".
+ * Exceções são tratadas globalmente pelo GlobalExceptionHandler.
  */
 @RestController
 @RequestMapping("/alunos")
@@ -39,14 +40,9 @@ public class AlunoController {
      * Busca um aluno por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        try {
-            Aluno aluno = alunoService.buscarPorId(id);
-            return ResponseEntity.ok(aluno);
-        } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> buscarPorId(@PathVariable Long id) {
+        Aluno aluno = alunoService.buscarPorId(id);
+        return ResponseEntity.ok(aluno);
     }
 
     /**
@@ -54,14 +50,9 @@ public class AlunoController {
      * Busca um aluno por CPF
      */
     @GetMapping("/cpf/{cpf}")
-    public ResponseEntity<?> buscarPorCpf(@PathVariable String cpf) {
-        try {
-            Aluno aluno = alunoService.buscarPorCpf(cpf);
-            return ResponseEntity.ok(aluno);
-        } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> buscarPorCpf(@PathVariable String cpf) {
+        Aluno aluno = alunoService.buscarPorCpf(cpf);
+        return ResponseEntity.ok(aluno);
     }
 
     /**
@@ -69,14 +60,9 @@ public class AlunoController {
      * Busca um aluno por matrícula
      */
     @GetMapping("/matricula/{matricula}")
-    public ResponseEntity<?> buscarPorMatricula(@PathVariable String matricula) {
-        try {
-            Aluno aluno = alunoService.buscarPorMatricula(matricula);
-            return ResponseEntity.ok(aluno);
-        } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> buscarPorMatricula(@PathVariable String matricula) {
+        Aluno aluno = alunoService.buscarPorMatricula(matricula);
+        return ResponseEntity.ok(aluno);
     }
 
     /**
@@ -90,18 +76,85 @@ public class AlunoController {
     }
 
     /**
+     * GET /alunos/status/{status}
+     * Busca alunos por status (ativo/inativo)
+     */
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Aluno>> buscarPorStatus(@PathVariable Boolean status) {
+        List<Aluno> alunos = alunoService.buscarPorStatus(status);
+        return ResponseEntity.ok(alunos);
+    }
+
+    /**
+     * GET /alunos/plano/{plano}/status/{status}
+     * Busca alunos por plano e status
+     */
+    @GetMapping("/plano/{plano}/status/{status}")
+    public ResponseEntity<List<Aluno>> buscarPorPlanoEStatus(@PathVariable String plano, @PathVariable Boolean status) {
+        List<Aluno> alunos = alunoService.buscarPorPlanoEStatus(plano, status);
+        return ResponseEntity.ok(alunos);
+    }
+
+    /**
+     * GET /alunos/academia/{academiaId}
+     * Busca alunos de uma academia específica
+     */
+    @GetMapping("/academia/{academiaId}")
+    public ResponseEntity<List<Aluno>> buscarPorAcademia(@PathVariable Long academiaId) {
+        List<Aluno> alunos = alunoService.buscarPorAcademia(academiaId);
+        return ResponseEntity.ok(alunos);
+    }
+
+    /**
+     * GET /alunos/academia/{academiaId}/ativos
+     * Busca alunos ativos de uma academia específica
+     */
+    @GetMapping("/academia/{academiaId}/ativos")
+    public ResponseEntity<List<Aluno>> buscarAtivosDeAcademia(@PathVariable Long academiaId) {
+        List<Aluno> alunos = alunoService.buscarAlunosAtivosDeAcademia(academiaId);
+        return ResponseEntity.ok(alunos);
+    }
+
+    /**
+     * GET /alunos/sem-academia
+     * Busca alunos sem academia vinculada
+     */
+    @GetMapping("/sem-academia")
+    public ResponseEntity<List<Aluno>> buscarSemAcademia() {
+        List<Aluno> alunos = alunoService.buscarSemAcademia();
+        return ResponseEntity.ok(alunos);
+    }
+
+    /**
+     * GET /alunos/periodo
+     * Busca alunos por período de início (query parameters)
+     */
+    @GetMapping("/periodo")
+    public ResponseEntity<List<Aluno>> buscarPorPeriodo(
+            @RequestParam String dataInicio,
+            @RequestParam String dataFim) {
+        List<Aluno> alunos = alunoService.buscarPorPeriodo(dataInicio, dataFim);
+        return ResponseEntity.ok(alunos);
+    }
+
+    /**
+     * GET /alunos/estatisticas
+     * Retorna estatísticas sobre alunos
+     */
+    @GetMapping("/estatisticas")
+    public ResponseEntity<Map<String, Long>> obterEstatisticas() {
+        Map<String, Long> estatisticas = alunoService.obterEstatisticas();
+        return ResponseEntity.ok(estatisticas);
+    }
+
+    /**
      * POST /alunos
      * Cria um novo aluno
      */
     @PostMapping
-    public ResponseEntity<?> criar(@RequestBody Aluno aluno) {
-        try {
-            Aluno salvo = alunoService.salvar(aluno);
-            return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
-        } catch (AlunoInvalidoException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> criar(@Valid @RequestBody Aluno aluno) {
+        Aluno salvo = alunoService.salvar(aluno);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
     /**
@@ -109,19 +162,11 @@ public class AlunoController {
      * Atualiza um aluno existente
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Aluno alunoAtualizado) {
-        try {
-            Aluno aluno = alunoService.buscarPorId(id);
-            alunoAtualizado.setId(id);
-            Aluno salvo = alunoService.salvar(alunoAtualizado);
-            return ResponseEntity.ok(salvo);
-        } catch (AlunoInvalidoException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @Valid @RequestBody Aluno alunoAtualizado) {
+        Aluno aluno = alunoService.buscarPorId(id);
+        alunoAtualizado.setId(id);
+        Aluno salvo = alunoService.salvar(alunoAtualizado);
+        return ResponseEntity.ok(salvo);
     }
 
     /**
@@ -129,14 +174,9 @@ public class AlunoController {
      * Inativa um aluno (altera status para false)
      */
     @PatchMapping("/{id}/inativar")
-    public ResponseEntity<?> inativar(@PathVariable Long id) {
-        try {
-            Aluno aluno = alunoService.inativar(id);
-            return ResponseEntity.ok(aluno);
-        } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> inativar(@PathVariable Long id) {
+        Aluno aluno = alunoService.inativar(id);
+        return ResponseEntity.ok(aluno);
     }
 
     /**
@@ -144,14 +184,29 @@ public class AlunoController {
      * Ativa um aluno (altera status para true)
      */
     @PatchMapping("/{id}/ativar")
-    public ResponseEntity<?> ativar(@PathVariable Long id) {
-        try {
-            Aluno aluno = alunoService.ativar(id);
-            return ResponseEntity.ok(aluno);
-        } catch (AlunoNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    public ResponseEntity<Aluno> ativar(@PathVariable Long id) {
+        Aluno aluno = alunoService.ativar(id);
+        return ResponseEntity.ok(aluno);
+    }
+
+    /**
+     * PATCH /alunos/{id}/vincular-academia/{academiaId}
+     * Vincula um aluno a uma academia
+     */
+    @PatchMapping("/{id}/vincular-academia/{academiaId}")
+    public ResponseEntity<Aluno> vincularAcademia(@PathVariable Long id, @PathVariable Long academiaId) {
+        Aluno aluno = alunoService.vincularAcademia(id, academiaId);
+        return ResponseEntity.ok(aluno);
+    }
+
+    /**
+     * PATCH /alunos/{id}/desvincular-academia
+     * Desvincula um aluno de sua academia
+     */
+    @PatchMapping("/{id}/desvincular-academia")
+    public ResponseEntity<Aluno> desvincularAcademia(@PathVariable Long id) {
+        Aluno aluno = alunoService.desvincularAcademia(id);
+        return ResponseEntity.ok(aluno);
     }
 
     /**

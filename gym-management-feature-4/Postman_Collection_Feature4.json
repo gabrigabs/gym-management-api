@@ -1,0 +1,504 @@
+{
+	"info": {
+		"_postman_id": "gym-management-feature-4",
+		"name": "Gym Management API - Feature 4",
+		"description": "Collection completa da Feature 4 com validações Bean Validation, tratamento global de exceções, relacionamentos e query methods customizados",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01 - Academias",
+			"item": [
+				{
+					"name": "Criar Academia (Sucesso)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Academia PowerGym\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"endereco\": \"Rua das Flores, 123 - Centro, Rio de Janeiro\",\n  \"telefone\": \"(21) 98765-4321\",\n  \"statusAtivo\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/academias", "host": ["localhost"], "port": "8080", "path": ["academias"]}
+					}
+				},
+				{
+					"name": "Criar Academia (Erro - CNPJ Inválido)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Academia Teste\",\n  \"cnpj\": \"12345678000190\",\n  \"endereco\": \"Rua Teste\",\n  \"telefone\": \"(21) 98765-4321\",\n  \"statusAtivo\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/academias", "host": ["localhost"], "port": "8080", "path": ["academias"]}
+					}
+				},
+				{
+					"name": "Listar Todas as Academias",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias", "host": ["localhost"], "port": "8080", "path": ["academias"]}
+					}
+				},
+				{
+					"name": "Buscar Academia por ID",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias/1", "host": ["localhost"], "port": "8080", "path": ["academias", "1"]}
+					}
+				},
+				{
+					"name": "Buscar Academias por Status (Ativas)",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias/status/true", "host": ["localhost"], "port": "8080", "path": ["academias", "status", "true"]}
+					}
+				},
+				{
+					"name": "Buscar Academias por Nome",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias/buscar?nome=Power", "host": ["localhost"], "port": "8080", "path": ["academias", "buscar"], "query": [{"key": "nome", "value": "Power"}]}
+					}
+				},
+				{
+					"name": "Academias Ativas com Instrutores",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias/ativas-com-instrutores", "host": ["localhost"], "port": "8080", "path": ["academias", "ativas-com-instrutores"]}
+					}
+				},
+				{
+					"name": "Academias com Mínimo de Alunos",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias/minimo-alunos/5", "host": ["localhost"], "port": "8080", "path": ["academias", "minimo-alunos", "5"]}
+					}
+				},
+				{
+					"name": "Estatísticas de Academias",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/academias/estatisticas", "host": ["localhost"], "port": "8080", "path": ["academias", "estatisticas"]}
+					}
+				},
+				{
+					"name": "Atualizar Academia",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Academia PowerGym Premium\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"endereco\": \"Rua das Flores, 123 - Centro, Rio de Janeiro\",\n  \"telefone\": \"(21) 98765-4321\",\n  \"statusAtivo\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/academias/1", "host": ["localhost"], "port": "8080", "path": ["academias", "1"]}
+					}
+				},
+				{
+					"name": "Deletar Academia",
+					"request": {
+						"method": "DELETE",
+						"url": {"raw": "http://localhost:8080/academias/1", "host": ["localhost"], "port": "8080", "path": ["academias", "1"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "02 - Alunos",
+			"item": [
+				{
+					"name": "Criar Aluno (Sucesso)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva Santos\",\n  \"email\": \"joao.silva@email.com\",\n  \"cpf\": \"123.456.789-00\",\n  \"telefone\": \"(21) 99876-5432\",\n  \"matricula\": \"MAT001\",\n  \"plano\": \"Plano Mensal\",\n  \"dataInicio\": \"2025-01-15\",\n  \"status\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/alunos", "host": ["localhost"], "port": "8080", "path": ["alunos"]}
+					}
+				},
+				{
+					"name": "Criar Aluno (Erro - CPF Inválido)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"joao@email.com\",\n  \"cpf\": \"12345678900\",\n  \"matricula\": \"MAT001\",\n  \"plano\": \"Mensal\",\n  \"dataInicio\": \"2025-01-15\",\n  \"status\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/alunos", "host": ["localhost"], "port": "8080", "path": ["alunos"]}
+					}
+				},
+				{
+					"name": "Criar Aluno (Erro - Email Inválido)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"email-invalido\",\n  \"cpf\": \"123.456.789-00\",\n  \"matricula\": \"MAT001\",\n  \"plano\": \"Mensal\",\n  \"dataInicio\": \"2025-01-15\",\n  \"status\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/alunos", "host": ["localhost"], "port": "8080", "path": ["alunos"]}
+					}
+				},
+				{
+					"name": "Listar Todos os Alunos",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos", "host": ["localhost"], "port": "8080", "path": ["alunos"]}
+					}
+				},
+				{
+					"name": "Buscar Aluno por ID",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/1", "host": ["localhost"], "port": "8080", "path": ["alunos", "1"]}
+					}
+				},
+				{
+					"name": "Buscar Aluno por CPF",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/cpf/123.456.789-00", "host": ["localhost"], "port": "8080", "path": ["alunos", "cpf", "123.456.789-00"]}
+					}
+				},
+				{
+					"name": "Buscar Aluno por Matrícula",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/matricula/MAT001", "host": ["localhost"], "port": "8080", "path": ["alunos", "matricula", "MAT001"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos por Status (Ativos)",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/status/true", "host": ["localhost"], "port": "8080", "path": ["alunos", "status", "true"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos por Plano",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/plano/Mensal", "host": ["localhost"], "port": "8080", "path": ["alunos", "plano", "Mensal"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos por Plano e Status",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/plano/Mensal/status/true", "host": ["localhost"], "port": "8080", "path": ["alunos", "plano", "Mensal", "status", "true"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos de uma Academia",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/academia/1", "host": ["localhost"], "port": "8080", "path": ["alunos", "academia", "1"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos Ativos de uma Academia",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/academia/1/ativos", "host": ["localhost"], "port": "8080", "path": ["alunos", "academia", "1", "ativos"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos Sem Academia",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/sem-academia", "host": ["localhost"], "port": "8080", "path": ["alunos", "sem-academia"]}
+					}
+				},
+				{
+					"name": "Buscar Alunos por Período",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/periodo?dataInicio=2025-01-01&dataFim=2025-12-31", "host": ["localhost"], "port": "8080", "path": ["alunos", "periodo"], "query": [{"key": "dataInicio", "value": "2025-01-01"}, {"key": "dataFim", "value": "2025-12-31"}]}
+					}
+				},
+				{
+					"name": "Estatísticas de Alunos",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/alunos/estatisticas", "host": ["localhost"], "port": "8080", "path": ["alunos", "estatisticas"]}
+					}
+				},
+				{
+					"name": "Vincular Aluno a Academia",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/alunos/1/vincular-academia/1", "host": ["localhost"], "port": "8080", "path": ["alunos", "1", "vincular-academia", "1"]}
+					}
+				},
+				{
+					"name": "Desvincular Aluno de Academia",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/alunos/1/desvincular-academia", "host": ["localhost"], "port": "8080", "path": ["alunos", "1", "desvincular-academia"]}
+					}
+				},
+				{
+					"name": "Ativar Aluno",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/alunos/1/ativar", "host": ["localhost"], "port": "8080", "path": ["alunos", "1", "ativar"]}
+					}
+				},
+				{
+					"name": "Inativar Aluno",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/alunos/1/inativar", "host": ["localhost"], "port": "8080", "path": ["alunos", "1", "inativar"]}
+					}
+				},
+				{
+					"name": "Atualizar Aluno",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva Santos Junior\",\n  \"email\": \"joao.silva@email.com\",\n  \"cpf\": \"123.456.789-00\",\n  \"telefone\": \"(21) 99876-5432\",\n  \"matricula\": \"MAT001\",\n  \"plano\": \"Plano Trimestral\",\n  \"dataInicio\": \"2025-01-15\",\n  \"status\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/alunos/1", "host": ["localhost"], "port": "8080", "path": ["alunos", "1"]}
+					}
+				},
+				{
+					"name": "Deletar Aluno",
+					"request": {
+						"method": "DELETE",
+						"url": {"raw": "http://localhost:8080/alunos/1", "host": ["localhost"], "port": "8080", "path": ["alunos", "1"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "03 - Instrutores",
+			"item": [
+				{
+					"name": "Criar Instrutor (Sucesso)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Maria Santos Silva\",\n  \"email\": \"maria.santos@email.com\",\n  \"cpf\": \"987.654.321-00\",\n  \"telefone\": \"(21) 91234-5678\",\n  \"registro\": \"REG001\",\n  \"especialidade\": \"Musculação e Hipertrofia\",\n  \"salario\": 3500.00,\n  \"status\": true,\n  \"endereco\": {\n    \"cep\": \"20000-000\",\n    \"logradouro\": \"Rua Principal\",\n    \"complemento\": \"Apt 101\",\n    \"unidade\": \"A\",\n    \"bairro\": \"Centro\",\n    \"localidade\": \"Rio de Janeiro\",\n    \"uf\": \"RJ\",\n    \"estado\": \"Rio de Janeiro\"\n  }\n}"
+						},
+						"url": {"raw": "http://localhost:8080/instrutores", "host": ["localhost"], "port": "8080", "path": ["instrutores"]}
+					}
+				},
+				{
+					"name": "Criar Instrutor (Erro - Salário Abaixo do Mínimo)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Maria Santos\",\n  \"email\": \"maria@email.com\",\n  \"cpf\": \"987.654.321-00\",\n  \"registro\": \"REG001\",\n  \"especialidade\": \"Musculação\",\n  \"salario\": 1000.00,\n  \"status\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/instrutores", "host": ["localhost"], "port": "8080", "path": ["instrutores"]}
+					}
+				},
+				{
+					"name": "Criar Instrutor (Erro - Registro Inválido)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Maria Santos\",\n  \"email\": \"maria@email.com\",\n  \"cpf\": \"987.654.321-00\",\n  \"registro\": \"ABC123\",\n  \"especialidade\": \"Musculação\",\n  \"salario\": 3500.00,\n  \"status\": true\n}"
+						},
+						"url": {"raw": "http://localhost:8080/instrutores", "host": ["localhost"], "port": "8080", "path": ["instrutores"]}
+					}
+				},
+				{
+					"name": "Listar Todos os Instrutores",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores", "host": ["localhost"], "port": "8080", "path": ["instrutores"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutor por ID",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/1", "host": ["localhost"], "port": "8080", "path": ["instrutores", "1"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutor por CPF",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/cpf/987.654.321-00", "host": ["localhost"], "port": "8080", "path": ["instrutores", "cpf", "987.654.321-00"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutor por Registro",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/registro/REG001", "host": ["localhost"], "port": "8080", "path": ["instrutores", "registro", "REG001"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores por Especialidade",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/especialidade/Musculação", "host": ["localhost"], "port": "8080", "path": ["instrutores", "especialidade", "Musculação"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores por Status",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/status/true", "host": ["localhost"], "port": "8080", "path": ["instrutores", "status", "true"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores por Especialidade e Status",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/especialidade/Musculação/status/true", "host": ["localhost"], "port": "8080", "path": ["instrutores", "especialidade", "Musculação", "status", "true"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores por Faixa Salarial",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/salario?min=2000&max=5000", "host": ["localhost"], "port": "8080", "path": ["instrutores", "salario"], "query": [{"key": "min", "value": "2000"}, {"key": "max", "value": "5000"}]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores Salário Acima de Valor",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/salario-acima/3000", "host": ["localhost"], "port": "8080", "path": ["instrutores", "salario-acima", "3000"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores de uma Academia",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/academia/1", "host": ["localhost"], "port": "8080", "path": ["instrutores", "academia", "1"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores Ativos de uma Academia",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/academia/1/ativos", "host": ["localhost"], "port": "8080", "path": ["instrutores", "academia", "1", "ativos"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores Sem Academia",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/sem-academia", "host": ["localhost"], "port": "8080", "path": ["instrutores", "sem-academia"]}
+					}
+				},
+				{
+					"name": "Buscar Instrutores por Cidade",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/cidade/Rio de Janeiro", "host": ["localhost"], "port": "8080", "path": ["instrutores", "cidade", "Rio de Janeiro"]}
+					}
+				},
+				{
+					"name": "Estatísticas de Instrutores",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/instrutores/estatisticas", "host": ["localhost"], "port": "8080", "path": ["instrutores", "estatisticas"]}
+					}
+				},
+				{
+					"name": "Vincular Instrutor a Academia",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/instrutores/1/vincular-academia/1", "host": ["localhost"], "port": "8080", "path": ["instrutores", "1", "vincular-academia", "1"]}
+					}
+				},
+				{
+					"name": "Desvincular Instrutor de Academia",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/instrutores/1/desvincular-academia", "host": ["localhost"], "port": "8080", "path": ["instrutores", "1", "desvincular-academia"]}
+					}
+				},
+				{
+					"name": "Ativar Instrutor",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/instrutores/1/ativar", "host": ["localhost"], "port": "8080", "path": ["instrutores", "1", "ativar"]}
+					}
+				},
+				{
+					"name": "Inativar Instrutor",
+					"request": {
+						"method": "PATCH",
+						"url": {"raw": "http://localhost:8080/instrutores/1/inativar", "host": ["localhost"], "port": "8080", "path": ["instrutores", "1", "inativar"]}
+					}
+				},
+				{
+					"name": "Deletar Instrutor",
+					"request": {
+						"method": "DELETE",
+						"url": {"raw": "http://localhost:8080/instrutores/1", "host": ["localhost"], "port": "8080", "path": ["instrutores", "1"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "04 - Endereços",
+			"item": [
+				{
+					"name": "Criar Endereço (Sucesso)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cep\": \"20000-000\",\n  \"logradouro\": \"Rua Principal da Silva\",\n  \"complemento\": \"Bloco A\",\n  \"unidade\": \"201\",\n  \"bairro\": \"Centro\",\n  \"localidade\": \"Rio de Janeiro\",\n  \"uf\": \"RJ\",\n  \"estado\": \"Rio de Janeiro\"\n}"
+						},
+						"url": {"raw": "http://localhost:8080/enderecos", "host": ["localhost"], "port": "8080", "path": ["enderecos"]}
+					}
+				},
+				{
+					"name": "Criar Endereço (Erro - CEP Inválido)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cep\": \"20000\",\n  \"logradouro\": \"Rua Principal\",\n  \"bairro\": \"Centro\",\n  \"localidade\": \"Rio de Janeiro\",\n  \"uf\": \"RJ\",\n  \"estado\": \"Rio de Janeiro\"\n}"
+						},
+						"url": {"raw": "http://localhost:8080/enderecos", "host": ["localhost"], "port": "8080", "path": ["enderecos"]}
+					}
+				},
+				{
+					"name": "Listar Todos os Endereços",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/enderecos", "host": ["localhost"], "port": "8080", "path": ["enderecos"]}
+					}
+				},
+				{
+					"name": "Buscar Endereço por ID",
+					"request": {
+						"method": "GET",
+						"url": {"raw": "http://localhost:8080/enderecos/1", "host": ["localhost"], "port": "8080", "path": ["enderecos", "1"]}
+					}
+				},
+				{
+					"name": "Deletar Endereço",
+					"request": {
+						"method": "DELETE",
+						"url": {"raw": "http://localhost:8080/enderecos/1", "host": ["localhost"], "port": "8080", "path": ["enderecos", "1"]}
+					}
+				}
+			]
+		}
+	]
+}
+

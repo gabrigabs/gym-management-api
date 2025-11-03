@@ -5,6 +5,8 @@ import br.edu.infnet.gabriel.gym_management.repository.AcademiaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Serviço responsável pela gestão de Academias.
@@ -20,34 +22,16 @@ public class AcademyService implements CrudService<Academia, Long> {
         this.academiaRepository = academiaRepository;
     }
 
-    /**
-     * Salva uma nova academia ou atualiza uma existente.
-     *
-     * @param academia A academia a ser salva
-     * @return A academia salva com ID atribuído
-     */
     @Override
     public Academia salvar(Academia academia) {
         return academiaRepository.save(academia);
     }
 
-    /**
-     * Busca uma academia pelo ID.
-     *
-     * @param id O ID da academia
-     * @return A academia encontrada, ou null se não existir
-     */
     @Override
     public Academia buscarPorId(Long id) {
         return academiaRepository.findById(id).orElse(null);
     }
 
-    /**
-     * Remove uma academia pelo ID.
-     *
-     * @param id O ID da academia a ser removida
-     * @return true se a academia foi removida, false se não existia
-     */
     @Override
     public Boolean excluir(Long id) {
         if (academiaRepository.existsById(id)) {
@@ -57,14 +41,48 @@ public class AcademyService implements CrudService<Academia, Long> {
         return false;
     }
 
-    /**
-     * Lista todas as academias armazenadas.
-     *
-     * @return Uma lista contendo todas as academias
-     */
     @Override
     public List<Academia> listarTodos() {
         return academiaRepository.findAll();
+    }
+
+    /**
+     * Busca academias por status
+     */
+    public List<Academia> buscarPorStatus(Boolean status) {
+        return academiaRepository.findByStatusAtivo(status);
+    }
+
+    /**
+     * Busca academias por nome (contém)
+     */
+    public List<Academia> buscarPorNome(String nome) {
+        return academiaRepository.findByNomeContainingIgnoreCase(nome);
+    }
+
+    /**
+     * Busca academias ativas com instrutores
+     */
+    public List<Academia> buscarAcademiasAtivasComInstrutores() {
+        return academiaRepository.findAcademiasAtivasComInstrutores();
+    }
+
+    /**
+     * Busca academias com mínimo de alunos
+     */
+    public List<Academia> buscarAcademiasComMinimoAlunos(int minAlunos) {
+        return academiaRepository.findAcademiasComMinimoAlunos(minAlunos);
+    }
+
+    /**
+     * Obtém estatísticas sobre academias
+     */
+    public Map<String, Long> obterEstatisticas() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("total", academiaRepository.count());
+        stats.put("ativas", academiaRepository.countByStatusAtivo(true));
+        stats.put("inativas", academiaRepository.countByStatusAtivo(false));
+        return stats;
     }
 }
 
